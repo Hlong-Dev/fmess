@@ -39,7 +39,7 @@
     padding: 20px 20px 28px;
     background: var(--bg);
     color: var(--text);
-    font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     -webkit-user-select: none;
     user-select: none;
   }
@@ -105,6 +105,64 @@
   }
   select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   button { cursor: pointer; }
+  .controls { display: flex; gap: 6px; }
+  .themes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding: 4px 14px 14px;
+  }
+  .theme-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    padding: 6px;
+    box-shadow: none;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+  }
+  .theme-card:hover { border-color: var(--separator); }
+  .theme-card[aria-checked="true"] { border-color: var(--accent); }
+  .mini {
+    display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    height: 96px;
+    overflow: hidden;
+    border: 1px solid var(--separator);
+    border-radius: 8px;
+  }
+  .mini-rail { width: 14px; background: var(--rail); }
+  .mini-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-sizing: border-box;
+    width: 34%;
+    padding: 8px 5px;
+    background: var(--list);
+  }
+  .mini-list i { height: 7px; border-radius: 4px; background: rgba(128, 128, 128, 0.35); }
+  .mini-chat {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 5px;
+    padding: 8px;
+    background: var(--chat);
+  }
+  .mini-chat b { width: 62%; height: 11px; border-radius: 5px; background: var(--in); box-shadow: 0 0 0 0.5px rgba(128, 128, 128, 0.3); }
+  .mini-chat b.out { align-self: flex-end; width: 48%; background: var(--out); }
+  .mini-chat b.short { width: 36%; }
+  .theme-name { padding: 0 2px; text-align: center; }
   button:active { opacity: 0.7; }
 
   .note { margin: 18px 4px 0; font-size: 11.5px; color: var(--muted); }
@@ -234,6 +292,16 @@
         <option value="2">200%</option>
       </select>
     </label>
+    <div class="row">
+      <span class="label">Theme
+        <span class="hint">How Messenger looks. Add a theme from a .css file.</span>
+      </span>
+      <span class="controls">
+        <button type="button" id="add-theme">Add…</button>
+        <button type="button" id="remove-theme" hidden>Remove</button>
+      </span>
+    </div>
+    <div class="themes" id="themes" role="radiogroup" aria-label="Theme"></div>
   </div>
 
   <section data-only="macos" hidden>
@@ -254,10 +322,13 @@
   const invoke = (command, args) => window.__TAURI_INTERNALS__.invoke(command, args);
   const inputs = [...document.querySelectorAll('[data-key]')];
   const errorBox = document.getElementById('error');
+  const themeCards = document.getElementById('themes');
   let current = null;
+  let themes = [];
 
   function render(view) {
     current = view;
+    renderTheme();
     for (const input of inputs) {
       const value = view[input.dataset.key];
       if (input.type === 'checkbox') input.checked = Boolean(value);
@@ -309,6 +380,68 @@
   for (const button of document.querySelectorAll('[data-open]')) {
     button.addEventListener('click', () => invoke('open_messenger_preferences', { section: button.dataset.open || null }));
   }
+
+  // Themes: Messenger's own look, then those fMess has (themes.rs), each a
+  // card with a small chat window in its colours.
+  const messengerPreview = () =>
+    matchMedia('(prefers-color-scheme: dark)').matches
+      ? ['#242526', '#242526', '#18191a', '#0866ff', '#303030']
+      : ['#ffffff', '#ffffff', '#ffffff', '#0866ff', '#f0f0f0'];
+  const themeCard = ({ id, name, preview }) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'theme-card';
+    card.setAttribute('role', 'radio');
+    card.setAttribute('aria-checked', String(id === (current?.theme ?? '')));
+    const mini = document.createElement('span');
+    mini.className = 'mini';
+    const [rail, list, chat, out, theirs] = preview ?? ['#888', '#aaa', '#ccc', '#999', '#eee'];
+    for (const [key, colour] of Object.entries({ rail, list, chat, out, in: theirs })) mini.style.setProperty(`--${key}`, colour);
+    mini.innerHTML =
+      '<span class="mini-rail"></span><span class="mini-list"><i></i><i></i><i></i><i></i></span>' +
+      '<span class="mini-chat"><b></b><b class="out"></b><b class="short"></b><b class="out short"></b></span>';
+    const label = document.createElement('span');
+    label.className = 'theme-name';
+    label.textContent = name;
+    card.append(mini, label);
+    card.addEventListener('click', () => {
+      current.theme = id || null;
+      renderTheme();
+      save();
+    });
+    return card;
+  };
+  function renderTheme() {
+    const all = [{ id: '', name: 'Messenger', preview: messengerPreview() }, ...themes];
+    themeCards.replaceChildren(...all.map(themeCard));
+    document.getElementById('remove-theme').hidden = !themes.some((theme) => theme.id === current?.theme && !theme.builtIn);
+  }
+  async function loadThemes() {
+    themes = await invoke('list_themes').catch(() => []);
+    renderTheme();
+  }
+  const showError = (err) => { errorBox.textContent = String(err); };
+  document.getElementById('add-theme').addEventListener('click', async () => {
+    try {
+      const id = await invoke('add_theme');
+      if (!id) return;
+      await loadThemes();
+      current.theme = id;
+      await save();
+    } catch (err) {
+      showError(err);
+    }
+  });
+  document.getElementById('remove-theme').addEventListener('click', async () => {
+    try {
+      await invoke('remove_theme', { id: current.theme });
+      await loadThemes();
+      render(await invoke('get_settings'));
+    } catch (err) {
+      showError(err);
+    }
+  });
+  loadThemes();
 
   async function save() {
     const { launchAtLogin, platform, messenger, ...settings } = current;

@@ -16,6 +16,9 @@ fn main() {
                 "open_messenger_preferences",
                 "test_notification",
                 "open_settings",
+                "list_themes",
+                "add_theme",
+                "remove_theme",
             ])),
     )
     .expect("failed to run tauri-build");

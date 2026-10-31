@@ -50,7 +50,7 @@ pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -
             PageLoadEvent::Finished => {
                 // The settings may have changed since the window opened.
                 let settings = settings::current(window.app_handle());
-                let _ = window.eval(settings::page_settings_script(&settings));
+                let _ = window.eval(settings::page_settings_script(window.app_handle(), &settings));
             }
         });
     // Messenger's colours from the first frame, before the page paints.
@@ -85,8 +85,9 @@ pub fn open_settings_window<R: Runtime>(app: &AppHandle<R>) {
     }
     let result = WebviewWindowBuilder::new(app, SETTINGS_WINDOW, WebviewUrl::App("settings.html".into()))
         .title("fMess Settings")
-        .inner_size(480.0, 640.0)
-        .resizable(false)
+        .inner_size(640.0, 780.0)
+        .min_inner_size(560.0, 560.0)
+        .resizable(true)
         .minimizable(false)
         .maximizable(false)
         .build();
@@ -198,7 +199,7 @@ fn initialization_script<R: Runtime>(app: &AppHandle<R>) -> String {
          window.__fmessDark = {dark};\n\
          window.__fmessSplashLogo = 'data:image/png;base64,{logo}';\n\
          {INJECTED_SCRIPT}",
-        settings::page_settings(&settings)
+        settings::page_settings(app, &settings)
     )
 }
 

@@ -9,6 +9,7 @@ mod notify;
 #[cfg(debug_assertions)]
 mod probe;
 mod settings;
+mod themes;
 mod update;
 mod webview;
 
@@ -47,6 +48,9 @@ fn main() {
             settings::set_messenger_pref,
             settings::open_messenger_preferences,
             webview::open_settings,
+            themes::list_themes,
+            themes::add_theme,
+            themes::remove_theme,
             webview::set_viewer_open,
             menu::show_account_menu,
         ])

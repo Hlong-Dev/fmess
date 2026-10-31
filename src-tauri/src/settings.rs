@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, Runtime, Theme};
 use tauri_plugin_autostart::ManagerExt;
 
-use crate::{badge, MAIN_WINDOW};
+use crate::{badge, themes, MAIN_WINDOW};
 
 /// fMess's own preferences. Account settings (active status, sounds, dark
 /// mode) stay in Facebook's Preferences, which sync with the phone app.
@@ -27,6 +27,8 @@ pub struct Settings {
     /// Messenger's dark mode as last reported (ENABLED, DISABLED, USE_SYSTEM),
     /// so fMess starts in the right colours before the page has loaded.
     pub messenger_dark_mode: Option<String>,
+    /// The chosen theme (see themes.rs); none shows Messenger as it is.
+    pub theme: Option<String>,
 }
 
 impl Default for Settings {
@@ -41,6 +43,7 @@ impl Default for Settings {
             mac_calls: true,
             block_typing: false,
             messenger_dark_mode: None,
+            theme: None,
         }
     }
 }
@@ -120,8 +123,8 @@ pub fn update_settings<R: Runtime>(
         if settings.badge != previous.badge {
             badge::refresh(&window);
         }
-        if settings.block_typing != previous.block_typing {
-            let _ = window.eval(page_settings_script(&settings));
+        if settings.block_typing != previous.block_typing || settings.theme != previous.theme {
+            let _ = window.eval(page_settings_script(&app, &settings));
         }
         if settings.mac_calls != previous.mac_calls {
             // The call gate is patched as Facebook loads, so reload to apply
@@ -216,17 +219,27 @@ pub fn zoom_by<R: Runtime>(app: &AppHandle<R>, step: i32) {
 /// The settings inject.js works with. Facebook clears localStorage keys it
 /// doesn't know within seconds, so they reach the page from here: in the
 /// window's initialization script, and again after every page load.
-pub fn page_settings(settings: &Settings) -> String {
+pub fn page_settings<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> String {
     serde_json::json!({
         "macCalls": settings.mac_calls,
         "blockTyping": settings.block_typing,
+        "theme": themes::for_page(app, settings.theme.as_deref()),
     })
     .to_string()
 }
 
 /// Hands the current settings to the loaded page.
-pub fn page_settings_script(settings: &Settings) -> String {
-    format!("window.__fmessApplySettings?.({});", page_settings(settings))
+pub fn page_settings_script<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> String {
+    format!("window.__fmessApplySettings?.({});", page_settings(app, settings))
+}
+
+/// Goes back to Messenger's own look (the theme was removed).
+pub fn clear_theme<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
+    change(app, |settings| settings.theme = None)?;
+    if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
+        let _ = window.eval(page_settings_script(app, &current(app)));
+    }
+    Ok(())
 }
 
 
