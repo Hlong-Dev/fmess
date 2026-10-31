@@ -6,9 +6,11 @@
 
 /* Dark */
 /* Facebook declares its colours again on any element marked for a mode, so
-   the theme does too, and on the elements that carry a chat's own colours. */
+   the theme does too, and on the elements that carry a chat's own colours.
+   fMess marks the page dark (data-fmess-dark) whenever Messenger is. */
+html[data-fmess-dark],
 .__fb-dark-mode,
-.__fb-dark-mode [style*="--chat-outgoing-message-bubble-background-color"] {
+html[data-fmess-dark] [style*="--chat-outgoing-message-bubble-background-color"] {
   --accent: #00a884 !important;
   --primary-button-background: #00a884 !important;
   --primary-deemphasized-button-background: rgba(0, 168, 132, 0.18) !important;
@@ -58,9 +60,9 @@
 }
 
 /* Light */
-:root:not(.__fb-dark-mode),
-.__fb-light-mode,
-:root:not(.__fb-dark-mode) [style*="--chat-outgoing-message-bubble-background-color"] {
+html:not([data-fmess-dark]),
+html:not([data-fmess-dark]) .__fb-light-mode,
+html:not([data-fmess-dark]) [style*="--chat-outgoing-message-bubble-background-color"] {
   --accent: #00a884 !important;
   --primary-button-background: #00a884 !important;
   --primary-deemphasized-button-background: rgba(0, 168, 132, 0.12) !important;
