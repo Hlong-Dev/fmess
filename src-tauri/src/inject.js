@@ -5,6 +5,18 @@
   if (window.top !== window || window.__fmessInstalled) return;
   window.__fmessInstalled = true;
 
+  // WebView2 (Windows) runs this before the page has its <html> element;
+  // WebKit already has one. What needs it waits for it.
+  const withRoot = (use) => {
+    if (document.documentElement) return use(document.documentElement);
+    const wait = new MutationObserver(() => {
+      if (!document.documentElement) return;
+      wait.disconnect();
+      use(document.documentElement);
+    });
+    wait.observe(document, { childList: true });
+  };
+
   // fMess's loading screen in place of Facebook's, in Messenger's colours
   // (set by fMess before this script), until the chat list is up. Login and
   // other pages show at once.
@@ -54,7 +66,7 @@
     const splash = document.createElement('div');
     splash.id = 'fmess-splash';
     splash.innerHTML = `<img alt="" src="${window.__fmessSplashLogo}"><span>fMess</span><i></i>`;
-    document.documentElement.append(splashStyle, splash);
+    withRoot((root) => root.append(splashStyle, splash));
     const shownAt = Date.now();
     const waitForChats = setInterval(() => {
       const ready =
@@ -560,7 +572,7 @@
     };
   }
   window.addEventListener('popstate', syncRoute);
-  syncRoute();
+  withRoot(syncRoute);
 
   // Facebook links in a chat (reels, posts, profiles) open in the browser, so
   // fMess stays on the conversation. Keep this list in step with
@@ -604,7 +616,7 @@
     try {
       out = String(window.require('CurrentUserInitialData').USER_ID) === '0';
     } catch {}
-    document.documentElement.toggleAttribute(LOGGED_OUT, out);
+    document.documentElement?.toggleAttribute(LOGGED_OUT, out);
   };
   setInterval(syncLoggedOut, 1000);
   // Popups (call windows) keep a normal title bar.
@@ -676,12 +688,12 @@
        whole chats. Auto height looks the same there and takes milliseconds. */
     html[${CHATS}] img[height="100%"][width="100%"] { height: auto !important; }
   `;
-  document.documentElement.append(layoutStyle);
+  withRoot((root) => root.append(layoutStyle));
   if (titleBarInset) {
     const dragStrip = document.createElement('div');
     dragStrip.setAttribute('data-tauri-drag-region', '');
     dragStrip.style.cssText = `position: fixed; inset: 0 0 auto 0; height: ${inset}; z-index: 2147483647;`;
-    document.documentElement.append(dragStrip);
+    withRoot((root) => root.append(dragStrip));
   }
 
   // Scrollbars like macOS overlay scrollbars: WebKit draws always-on gray
@@ -691,7 +703,7 @@
   // the scrolling pane while it moves; call windows keep WebKit's. Wheel and
   // trackpad scrolling are unchanged.
   const MAIN = 'data-fmess-main';
-  if (!window.opener) document.documentElement.setAttribute(MAIN, '');
+  if (!window.opener) withRoot((root) => root.setAttribute(MAIN, ''));
   const scrollStyle = document.createElement('style');
   scrollStyle.textContent = `
     html[${MAIN}], html[${MAIN}] * { scrollbar-width: none !important; }
@@ -702,10 +714,10 @@
       opacity: 0; transition: opacity 0.3s;
     }
   `;
-  document.documentElement.append(scrollStyle);
+  withRoot((root) => root.append(scrollStyle));
   const indicator = document.createElement('div');
   indicator.id = 'fmess-scroll-indicator';
-  document.documentElement.append(indicator);
+  withRoot((root) => root.append(indicator));
   let hideIndicator;
   document.addEventListener(
     'scroll',
@@ -998,7 +1010,7 @@
   );
 
   let showBar = Boolean(settings.showFacebookBar);
-  document.documentElement.toggleAttribute(SHOW_BAR, showBar);
+  withRoot((root) => root.toggleAttribute(SHOW_BAR, showBar));
 
   // Called from the fMess menu; the account menu lives in that bar.
   window.__fmessToggleFacebookBar = () => {
@@ -1338,7 +1350,7 @@
     }
     #${ACCOUNT}:hover { filter: brightness(0.9); }
   `;
-  document.documentElement.append(accountStyle);
+  withRoot((root) => root.append(accountStyle));
 
   // The picture comes from Messenger's own contact entry for you. Facebook's
   // hidden top bar has it too, but also every profile of its account menu.
