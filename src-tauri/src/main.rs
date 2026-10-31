@@ -39,6 +39,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             notify::notify,
             notify::clear_notifications,
+            notify::test_notification,
             badge::set_unread_count,
             settings::get_settings,
             settings::update_settings,
@@ -53,6 +54,8 @@ fn main() {
         .on_menu_event(menu::handle)
         .setup(|app| {
             let handle = app.handle();
+            #[cfg(windows)]
+            notify::register_app_id(handle);
             let settings = settings::init(handle);
             handle.set_theme(settings::messenger_theme(settings.messenger_dark_mode.as_deref()));
             webview::create_main_window(handle, &settings)?;

@@ -196,6 +196,12 @@
       <span class="label">Unread count on the app icon</span>
       <span class="switch"><input type="checkbox" data-key="badge"><span></span></span>
     </label>
+    <div class="row">
+      <span class="label">Test notification
+        <span class="hint" id="test-result">Check that notifications reach your desktop.</span>
+      </span>
+      <button type="button" id="test-notification">Send</button>
+    </div>
   </div>
 
   <h2>Privacy</h2>
@@ -331,6 +337,13 @@
 
   for (const input of inputs) input.addEventListener('change', save);
   document.getElementById('toggle-bar').addEventListener('click', () => invoke('toggle_facebook_bar'));
+  document.getElementById('test-notification').addEventListener('click', () => {
+    const result = document.getElementById('test-result');
+    invoke('test_notification').then(
+      () => { result.textContent = 'Sent. If nothing appeared, check that notifications are allowed for fMess in your system settings.'; },
+      (err) => { result.textContent = `Couldn't send: ${err}`; },
+    );
+  });
   invoke('get_settings').then(render, (err) => { errorBox.textContent = String(err); });
   // Messenger's preferences may change while this is
   // open: on the phone, in Messenger's own dialog, or by a change made here.

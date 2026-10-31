@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "settings-window",
-  "description": "The local Settings window reads and saves fMess's settings, and Messenger's preferences through fMess's window.",
+  "description": "The local Settings window reads and saves fMess's settings, Messenger's preferences through fMess's window, and sends a test notification.",
   "windows": [
     "settings"
   ],
@@ -10,6 +10,7 @@
     "allow-update-settings",
     "allow-toggle-facebook-bar",
     "allow-set-messenger-pref",
-    "allow-open-messenger-preferences"
+    "allow-open-messenger-preferences",
+    "allow-test-notification"
   ]
 }

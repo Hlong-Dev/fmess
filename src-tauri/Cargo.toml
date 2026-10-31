@@ -86,3 +86,6 @@ objc2-user-notifications = { version = "0.3.2", default-features = false, featur
     "UNNotificationTrigger",
     "UNUserNotificationCenter",
 ] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_System_Registry", "Win32_UI_Shell"] }

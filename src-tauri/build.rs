@@ -16,6 +16,7 @@ fn main() {
                 "set_facebook_bar",
                 "set_messenger_pref",
                 "open_messenger_preferences",
+                "test_notification",
             ])),
     )
     .expect("failed to run tauri-build");

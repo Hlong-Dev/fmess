@@ -83,6 +83,77 @@ pub async fn notify<R: Runtime>(
         .map_err(|err| err.to_string())
 }
 
+/// The Settings window's Send Test Notification: shows one through the same
+/// path messages use, and says what went wrong when it can.
+#[tauri::command]
+pub fn test_notification<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
+    let (title, body) = ("fMess", "Notifications are working.");
+    #[cfg(target_os = "macos")]
+    if communication::available() {
+        let mut notification = communication::Notification::hidden(0);
+        notification.title = title.to_owned();
+        notification.body = body.to_owned();
+        communication::show(notification);
+        return Ok(());
+    }
+    app.notification()
+        .builder()
+        .title(title)
+        .body(body)
+        .show()
+        .map_err(|err| err.to_string())
+}
+
+/// Windows shows notifications only from apps it knows by their app ID
+/// (AppUserModelID): the installer's Start menu shortcut carries it, but the
+/// MSI's doesn't, and a copy run from elsewhere has none. So fMess registers
+/// the ID itself, with its name and icon, and runs under it.
+#[cfg(windows)]
+pub fn register_app_id<R: Runtime>(app: &AppHandle<R>) {
+    use windows_sys::Win32::{
+        System::Registry::{RegCloseKey, RegCreateKeyExW, RegSetValueExW, HKEY, HKEY_CURRENT_USER, KEY_WRITE, REG_OPTION_NON_VOLATILE, REG_SZ},
+        UI::Shell::SetCurrentProcessExplicitAppUserModelID,
+    };
+
+    let wide = |text: &str| text.encode_utf16().chain(Some(0)).collect::<Vec<u16>>();
+    let id = app.config().identifier.clone();
+    let icon = app.path().app_data_dir().ok().map(|dir| dir.join("notification-icon.png"));
+    if let Some(icon) = &icon {
+        let _ = icon.parent().map(std::fs::create_dir_all);
+        let _ = std::fs::write(icon, include_bytes!("../icons/128x128@2x.png"));
+    }
+    let id_wide = wide(&id);
+    unsafe {
+        SetCurrentProcessExplicitAppUserModelID(id_wide.as_ptr());
+        let mut key: HKEY = std::ptr::null_mut();
+        let path = wide(&format!(r"Software\Classes\AppUserModelId\{id}"));
+        let opened = RegCreateKeyExW(
+            HKEY_CURRENT_USER,
+            path.as_ptr(),
+            0,
+            std::ptr::null(),
+            REG_OPTION_NON_VOLATILE,
+            KEY_WRITE,
+            std::ptr::null(),
+            &mut key,
+            std::ptr::null_mut(),
+        );
+        if opened != 0 {
+            return;
+        }
+        let mut set = |name: &str, value: &str| {
+            let name = wide(name);
+            let value = wide(value);
+            RegSetValueExW(key, name.as_ptr(), 0, REG_SZ, value.as_ptr().cast(), (value.len() * 2) as u32);
+        };
+        set("DisplayName", &app.package_info().name);
+        if let Some(icon) = icon {
+            set("IconUri", &icon.to_string_lossy());
+        }
+        RegCloseKey(key);
+    }
+}
+
 /// Called by inject.js when a chat is read in fMess: its notifications go, as
 /// in the old desktop app.
 #[tauri::command]
