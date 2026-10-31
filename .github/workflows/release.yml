@@ -91,6 +91,7 @@ jobs:
           echo "args=$args" >> "$GITHUB_OUTPUT"
 
       - uses: tauri-apps/tauri-action@v0
+        id: tauri
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -102,3 +103,28 @@ jobs:
           releaseDraft: true
           includeUpdaterJson: true
           args: ${{ steps.options.outputs.args }}
+
+      # The same installers under names without the version, so the website can
+      # link to releases/latest/download/<name> and always get the newest one.
+      - name: Attach installers under stable names
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PATHS: ${{ steps.tauri.outputs.artifactPaths }}
+        run: |
+          mkdir -p stable
+          mac="fMess-mac-intel.dmg"
+          if [ "${{ matrix.target }}" = "aarch64-apple-darwin" ]; then mac="fMess-mac-apple-silicon.dmg"; fi
+          echo "$PATHS" | jq -r '.[]' | while read -r path; do
+            if command -v cygpath >/dev/null; then path=$(cygpath -u "$path"); fi
+            case "$path" in
+              *.dmg) cp "$path" "stable/$mac" ;;
+              *-setup.exe) cp "$path" stable/fMess-windows-setup.exe ;;
+              *.msi) cp "$path" stable/fMess-windows.msi ;;
+              *.AppImage) cp "$path" stable/fMess-linux.AppImage ;;
+              *.deb) cp "$path" stable/fMess-linux.deb ;;
+              *.rpm) cp "$path" stable/fMess-linux.rpm ;;
+            esac
+          done
+          ls -la stable
+          gh release upload "${{ github.ref_name }}" stable/* --clobber --repo "${{ github.repository }}"
