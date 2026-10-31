@@ -59,8 +59,9 @@ Download the build for your system from the
 | Windows 10 and 11 | `fMess_x.y.z_x64-setup.exe` or `.msi` |
 | Linux | `.deb`, `.rpm` or `.AppImage` |
 
-If macOS says it can't check fMess, right-click fMess in Applications and choose
-**Open**, or run `xattr -dr com.apple.quarantine /Applications/fMess.app`.
+The Mac app isn't notarized yet. If macOS won't open it, go to **System Settings →
+Privacy & Security** and click **Open Anyway**, or run
+`xattr -dr com.apple.quarantine /Applications/fMess.app` in Terminal.
 
 If Windows says it protected your PC, click **More info**, then **Run anyway**:
 fMess isn't code-signed for Windows yet, so SmartScreen doesn't know it.
