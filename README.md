@@ -62,6 +62,9 @@ Download the build for your system from the
 If macOS says it can't check fMess, right-click fMess in Applications and choose
 **Open**, or run `xattr -dr com.apple.quarantine /Applications/fMess.app`.
 
+If Windows says it protected your PC, click **More info**, then **Run anyway**:
+fMess isn't code-signed for Windows yet, so SmartScreen doesn't know it.
+
 ## Keyboard shortcuts
 
 On Windows and Linux, use Ctrl instead of ⌘.

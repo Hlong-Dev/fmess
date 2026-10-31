@@ -62,6 +62,9 @@ Tải bản phù hợp với máy bạn ở
 Nếu macOS cảnh báo không thể xác minh fMess, nhấp chuột phải vào fMess trong
 Applications rồi chọn **Open**, hoặc chạy `xattr -dr com.apple.quarantine /Applications/fMess.app`.
 
+Nếu Windows báo "Windows protected your PC", bấm **More info** rồi **Run anyway**:
+fMess chưa được ký số cho Windows nên SmartScreen chưa nhận diện được.
+
 ## Phím tắt
 
 Trên Windows và Linux, thay ⌘ bằng Ctrl.

@@ -88,6 +88,7 @@ const TRANSLATIONS = {
     windows_button: "Tải cho Windows",
     linux_text: ".deb, .rpm, AppImage",
     linux_button: "Tải cho Linux",
+    windows_note: "Windows báo “Windows protected your PC”? Bấm <b>More info</b> rồi <b>Run anyway</b>. fMess chưa được ký số cho Windows.",
     mac_note: "macOS cảnh báo không thể xác minh fMess? Nhấp chuột phải vào ứng dụng, chọn <b>Open</b>.",
     faq_title: "Hỏi đáp",
     q1: "fMess có phải sản phẩm của Meta?",
