@@ -193,6 +193,13 @@ footer p { margin: 0; max-width: 44em; }
 }
 @media (prefers-reduced-motion: reduce) { .note, .typing i { animation: none; } .btn { transition: none; } }
 
+/* Downloads */
+.choices { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.platform .which { margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+.alt-download { margin: 14px 0 0; font-size: 14px; }
+.alt-download a { color: var(--muted); }
+.version-line { margin-bottom: 28px !important; }
+
 /* Motion: assets/site.js plays it with the Motion library (motion.dev). The
    hero waits hidden for it, so nothing jumps; html.motion is set only when
    the visitor's system allows motion. */

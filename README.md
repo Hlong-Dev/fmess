@@ -52,12 +52,12 @@ a window of their own again and makes it feel like the old app.
 Download the build for your system from the
 [latest release](https://github.com/toanbku/fmess/releases/latest).
 
-| System | File |
+| System | Download |
 |---|---|
-| macOS 12+ (Apple silicon) | `fMess_x.y.z_aarch64.dmg` |
-| macOS 12+ (Intel) | `fMess_x.y.z_x64.dmg` |
-| Windows 10 and 11 | `fMess_x.y.z_x64-setup.exe` or `.msi` |
-| Linux | `.deb`, `.rpm` or `.AppImage` |
+| macOS 12+, Apple silicon (M1 and later) | [fMess-mac-apple-silicon.dmg](https://github.com/toanbku/fmess/releases/latest/download/fMess-mac-apple-silicon.dmg) |
+| macOS 12+, Intel | [fMess-mac-intel.dmg](https://github.com/toanbku/fmess/releases/latest/download/fMess-mac-intel.dmg) |
+| Windows 10 and 11 | [fMess-windows-setup.exe](https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-setup.exe) |
+| Linux | [AppImage](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.AppImage) · [.deb](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.deb) · [.rpm](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.rpm) |
 
 The Mac app isn't notarized yet. If macOS won't open it, go to **System Settings →
 Privacy & Security** and click **Open Anyway**, or run

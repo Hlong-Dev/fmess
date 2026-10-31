@@ -82,12 +82,16 @@ const TRANSLATIONS = {
     key7: "Cài đặt",
     key8: "Hiện thanh công cụ Facebook",
     download_title: "Tải fMess. <span class=\"ink-text\">Hoàn toàn miễn phí.</span>",
-    mac_text: "macOS 12 trở lên, hỗ trợ Apple silicon và Intel",
-    mac_button: "Tải cho Mac",
+    mac_text: "macOS 12 trở lên",
     windows_text: "Windows 10 và 11",
     windows_button: "Tải cho Windows",
-    linux_text: ".deb, .rpm, AppImage",
-    linux_button: "Tải cho Linux",
+    linux_text: "Ubuntu, Debian và hầu hết các bản khác",
+    mac_silicon: "Apple silicon",
+    mac_intel: "Intel",
+    mac_which: "Không chắc? Menu Apple → About This Mac: dòng “Chip Apple M…” là Apple silicon.",
+    intel_link: "Mac dùng chip Intel? Tải bản này.",
+    all_files: "Tất cả file và ghi chú phát hành",
+    latest_version: "Phiên bản mới nhất: {version}",
     windows_note: "Windows báo “Windows protected your PC”? Bấm <b>More info</b> rồi <b>Run anyway</b>. fMess chưa được ký số cho Windows.",
     mac_note: "macOS không cho mở fMess? Vào <b>System Settings → Privacy &amp; Security</b> rồi bấm <b>Open Anyway</b>.",
     faq_title: "Hỏi đáp",
@@ -107,6 +111,16 @@ const ENGLISH = {
   download_mac: 'Download for Mac',
   download_windows: 'Download for Windows',
   download_linux: 'Download for Linux',
+  latest_version: 'Latest version: {version}',
+};
+
+// Installers under stable names (the release workflow attaches them), so these
+// links always fetch the newest version.
+const LATEST = 'https://github.com/toanbku/fmess/releases/latest/download/';
+const HERO_DOWNLOAD = {
+  mac: 'fMess-mac-apple-silicon.dmg',
+  windows: 'fMess-windows-setup.exe',
+  linux: 'fMess-linux.AppImage',
 };
 
 const LANGUAGE_KEY = 'fmess.language';
@@ -150,12 +164,33 @@ const setLanguage = (language) => {
   // The main button names the visitor's system.
   const hero = document.querySelector('[data-i18n="download_hero"]');
   if (hero && system) hero.innerHTML = word(`download_${system}`);
+  if (latestVersion) {
+    const line = document.getElementById('latest-version');
+    line.textContent = word('latest_version').replace('{version}', latestVersion);
+    line.hidden = false;
+  }
   for (const button of document.querySelectorAll('.lang button')) {
     button.setAttribute('aria-pressed', String(button.dataset.lang === language));
   }
 };
 
+// The main button downloads the file for the visitor's system right away;
+// on a Mac it's the Apple silicon build, with a link to the Intel one below.
+let latestVersion = null;
+const heroLink = document.getElementById('download-hero');
+if (heroLink && HERO_DOWNLOAD[system]) {
+  heroLink.href = LATEST + HERO_DOWNLOAD[system];
+  if (system === 'mac') document.getElementById('download-intel').hidden = false;
+}
 setLanguage(chosenLanguage());
+// The newest version's number, from GitHub; the links work without it.
+fetch('https://api.github.com/repos/toanbku/fmess/releases/latest')
+  .then((response) => (response.ok ? response.json() : null))
+  .then((release) => {
+    latestVersion = release?.tag_name?.replace(/^v/, '') ?? null;
+    if (latestVersion) setLanguage(document.documentElement.lang);
+  })
+  .catch(() => {});
 for (const button of document.querySelectorAll('.lang button')) {
   button.addEventListener('click', () => {
     setLanguage(button.dataset.lang);
@@ -186,7 +221,10 @@ document.addEventListener('click', (event) => {
   const link = event.target.closest('a[href]');
   if (!link) return;
   const platform = link.closest('.platform')?.querySelector('h3')?.textContent ?? system ?? 'unknown';
-  if (link.href.includes('/releases/')) track('download_click', { platform, language: document.documentElement.lang });
+  if (link.href.includes('/releases/')) {
+    const file = link.href.includes('/download/') ? link.href.split('/').pop() : 'release page';
+    track('download_click', { platform, file, language: document.documentElement.lang });
+  }
   else if (link.hostname === 'github.com') track('github_click', { language: document.documentElement.lang });
 });
 

@@ -52,12 +52,12 @@ trải nghiệm như ứng dụng gốc.
 Tải bản phù hợp với máy bạn ở
 [bản phát hành mới nhất](https://github.com/toanbku/fmess/releases/latest).
 
-| Hệ điều hành | File |
+| Hệ điều hành | Tải về |
 |---|---|
-| macOS 12+ (Apple silicon) | `fMess_x.y.z_aarch64.dmg` |
-| macOS 12+ (Intel) | `fMess_x.y.z_x64.dmg` |
-| Windows 10 và 11 | `fMess_x.y.z_x64-setup.exe` hoặc `.msi` |
-| Linux | `.deb`, `.rpm` hoặc `.AppImage` |
+| macOS 12+, Apple silicon (M1 trở lên) | [fMess-mac-apple-silicon.dmg](https://github.com/toanbku/fmess/releases/latest/download/fMess-mac-apple-silicon.dmg) |
+| macOS 12+, Intel | [fMess-mac-intel.dmg](https://github.com/toanbku/fmess/releases/latest/download/fMess-mac-intel.dmg) |
+| Windows 10 và 11 | [fMess-windows-setup.exe](https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-setup.exe) |
+| Linux | [AppImage](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.AppImage) · [.deb](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.deb) · [.rpm](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.rpm) |
 
 Ứng dụng cho Mac chưa được Apple notarize. Nếu macOS không cho mở, vào **System Settings →
 Privacy & Security** rồi bấm **Open Anyway**, hoặc chạy
