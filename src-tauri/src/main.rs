@@ -44,10 +44,9 @@ fn main() {
             settings::get_settings,
             settings::update_settings,
             settings::sync_messenger_prefs,
-            settings::set_facebook_bar,
             settings::set_messenger_pref,
             settings::open_messenger_preferences,
-            webview::toggle_facebook_bar,
+            webview::open_settings,
             webview::set_viewer_open,
             menu::show_account_menu,
         ])

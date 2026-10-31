@@ -27,7 +27,6 @@ pub struct Settings {
     /// Messenger's dark mode as last reported (ENABLED, DISABLED, USE_SYSTEM),
     /// so fMess starts in the right colours before the page has loaded.
     pub messenger_dark_mode: Option<String>,
-    pub show_facebook_bar: bool,
 }
 
 impl Default for Settings {
@@ -42,7 +41,6 @@ impl Default for Settings {
             mac_calls: true,
             block_typing: false,
             messenger_dark_mode: None,
-            show_facebook_bar: false,
         }
     }
 }
@@ -112,7 +110,6 @@ pub fn update_settings<R: Runtime>(
     let mut settings = settings;
     // Kept by the page, not edited in the Settings window.
     settings.messenger_dark_mode = previous.messenger_dark_mode.clone();
-    settings.show_facebook_bar = previous.show_facebook_bar;
     *app.state::<SettingsState>().0.lock().unwrap() = settings.clone();
     save(&app, &settings)?;
 
@@ -223,7 +220,6 @@ pub fn page_settings(settings: &Settings) -> String {
     serde_json::json!({
         "macCalls": settings.mac_calls,
         "blockTyping": settings.block_typing,
-        "showFacebookBar": settings.show_facebook_bar,
     })
     .to_string()
 }
@@ -233,11 +229,6 @@ pub fn page_settings_script(settings: &Settings) -> String {
     format!("window.__fmessApplySettings?.({});", page_settings(settings))
 }
 
-/// Called by inject.js when Facebook's top bar is shown or hidden.
-#[tauri::command]
-pub fn set_facebook_bar<R: Runtime>(app: AppHandle<R>, shown: bool) -> Result<(), String> {
-    change(&app, |settings| settings.show_facebook_bar = shown)
-}
 
 fn change<R: Runtime>(app: &AppHandle<R>, edit: impl FnOnce(&mut Settings)) -> Result<(), String> {
     let mut settings = current(app);

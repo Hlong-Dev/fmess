@@ -234,12 +234,6 @@
         <option value="2">200%</option>
       </select>
     </label>
-    <div class="row">
-      <span class="label">Facebook top bar
-        <span class="hint">Facebook's own account menu. <kbd data-bar-shortcut></kbd></span>
-      </span>
-      <button type="button" id="toggle-bar">Show / Hide</button>
-    </div>
   </div>
 
   <section data-only="macos" hidden>
@@ -277,7 +271,6 @@
     const mac = view.platform === 'macos';
     for (const el of document.querySelectorAll('[data-only="macos"]')) el.hidden = !mac;
     for (const el of document.querySelectorAll('[data-tray]')) el.textContent = mac ? 'menu bar' : 'tray';
-    document.querySelector('[data-bar-shortcut]').textContent = mac ? '⌘⇧B' : 'Ctrl+Shift+B';
     document.querySelector('[data-zoom-shortcuts]').textContent = mac ? '⌘+  ⌘−  ⌘0' : 'Ctrl+  Ctrl−  Ctrl+0';
     renderMessenger(view.messenger);
   }
@@ -336,7 +329,6 @@
   }
 
   for (const input of inputs) input.addEventListener('change', save);
-  document.getElementById('toggle-bar').addEventListener('click', () => invoke('toggle_facebook_bar'));
   document.getElementById('test-notification').addEventListener('click', () => {
     const result = document.getElementById('test-result');
     invoke('test_notification').then(

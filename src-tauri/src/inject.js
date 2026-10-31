@@ -132,10 +132,15 @@
       const trigger = exports.triggerLocalNotification;
       if (typeof trigger !== 'function') return false;
       exports.triggerLocalNotification = function (db, message, ...rest) {
-        const details = readMessageDetails(db, message).catch(() => null);
-        messageDetails.set(String(message?.messageId), details);
-        if (messageDetails.size > 50) messageDetails.delete(messageDetails.keys().next().value);
-        return trigger.call(this, db, message, ...rest);
+        const notify = () => {
+          const details = readMessageDetails(db, message).catch(() => null);
+          messageDetails.set(String(message?.messageId), details);
+          if (messageDetails.size > 50) messageDetails.delete(messageDetails.keys().next().value);
+          return trigger.call(this, db, message, ...rest);
+        };
+        // A computer back from sleep gets the messages it missed one by one,
+        // and Messenger would notify about each, read elsewhere or not.
+        return isOldNews(db, message).then((old) => (old ? undefined : notify()), notify);
       };
       return true;
     },
@@ -362,6 +367,15 @@
   // that way (an account's settings, a contact, a chat).
   const int64 = (value) => (Array.isArray(value) ? (BigInt(value[0]) << 32n) + BigInt(value[1] >>> 0) : BigInt(value ?? 0));
   const int64Key = (id) => [Number(BigInt(id) >> 32n), Number(BigInt(id) & 0xffffffffn)];
+  const serverNow = () => {
+    try {
+      return window.require('ServerTime').getMillis();
+    } catch {
+      return Date.now();
+    }
+  };
+  // Messages that arrive this late aren't news (see isOldNews).
+  const LATE_MS = 2 * 60 * 1000;
 
   // The rest of Messenger's Preferences (⋯ → Preferences) belong to the
   // account as well. fMess's Settings show them: the page reads them here
@@ -609,7 +623,6 @@
   //
   // The chats lose the inset, rounded cards Facebook draws, so the panes sit
   // edge to edge with a divider, as in the old app.
-  const SHOW_BAR = 'data-fmess-show-facebook-bar';
   const LOGGED_OUT = 'data-fmess-logged-out';
   const syncLoggedOut = () => {
     let out = false;
@@ -622,8 +635,8 @@
   // Popups (call windows) keep a normal title bar.
   const titleBarInset = window.opener ? 0 : window.__fmessTitleBarInset || 0;
   const inset = `${titleBarInset}px`;
-  const BAR_HIDDEN = `html[${CHATS}]:not([${SHOW_BAR}])`;
-  const BAR_SHOWN = `html:not([${CHATS}]), html[${SHOW_BAR}]`;
+  const BAR_HIDDEN = `html[${CHATS}]`;
+  const BAR_SHOWN = `html:not([${CHATS}])`;
   const layoutStyle = document.createElement('style');
   layoutStyle.textContent = `
     ${BAR_HIDDEN} div[role="banner"] { display: none !important; }
@@ -1009,16 +1022,6 @@
     true,
   );
 
-  let showBar = Boolean(settings.showFacebookBar);
-  withRoot((root) => root.toggleAttribute(SHOW_BAR, showBar));
-
-  // Called from the fMess menu; the account menu lives in that bar.
-  window.__fmessToggleFacebookBar = () => {
-    showBar = !showBar;
-    document.documentElement.toggleAttribute(SHOW_BAR, showBar);
-    window.__TAURI_INTERNALS__?.invoke('set_facebook_bar', { shown: showBar }).catch(() => {});
-  };
-
   const shown = new Map();
   let nextId = Math.floor(Math.random() * 1e9);
   // When the page last raised a notification itself (see notifyNewestChat).
@@ -1036,6 +1039,15 @@
   // Sender and chat of a message notification, by message id (Messenger's
   // tag), read as MWDesktopNotifications does (see MODULE_PATCHES).
   const messageDetails = new Map();
+  // A message sent over LATE_MS ago, or in a chat read past it (on another
+  // device, say), needs no notification.
+  async function isOldNews(db, message) {
+    const sent = int64(message?.timestampMs);
+    if (sent && serverNow() - Number(sent) > LATE_MS) return true;
+    const ReQL = window.require('ReQL');
+    const chat = await ReQL.firstAsync(ReQL.fromTableAscending(db.tables.threads).getKeyRange(message.threadKey));
+    return Boolean(chat && sent) && int64(chat.lastReadWatermarkTimestampMs) >= sent;
+  }
   async function readMessageDetails(db, message) {
     const ReQL = window.require('ReQL');
     const first = (table, ...key) => ReQL.firstAsync(ReQL.fromTableAscending(table).getKeyRange(...key));
@@ -1208,9 +1220,9 @@
     return { name: texts[0] ?? '', preview };
   };
 
-  // Whether the newest message in a chat row is your own, as Messenger's copy
-  // of the chat list says.
-  const sentByMe = async (row) => {
+  // Whether a chat row has nothing to notify about, as Messenger's copy of
+  // the chat list says: its newest message is your own, or came in late.
+  const nothingNew = async (row) => {
     const thread = row.getAttribute('href')?.match(/\/t\/(\d+)/)?.[1];
     const me = currentUserId();
     if (!thread || !me) return false;
@@ -1218,7 +1230,8 @@
     const ReQL = window.require('ReQL');
     const db = await window.require('LSDatabaseSingleton').LSDatabaseSingleton;
     const chat = await ReQL.firstAsync(ReQL.fromTableAscending(db.tables.threads).getKeyRange(int64Key(thread)));
-    return Boolean(chat) && int64(chat.snippetSenderContactId) === BigInt(me);
+    if (!chat) return false;
+    return int64(chat.snippetSenderContactId) === BigInt(me) || serverNow() - Number(int64(chat.lastActivityTimestampMs)) > LATE_MS;
   };
 
   // Facebook raises its own notifications (see MODULE_PATCHES). In case it
@@ -1228,10 +1241,11 @@
     const links = chatLinks();
     const unread = links.filter(isUnreadChat);
     // A message you send from your phone in an encrypted chat can leave that
-    // chat unread here; Messenger doesn't notify about your own messages.
+    // chat unread here, and a computer back from sleep catches up on chats
+    // all at once; Messenger notifies about neither.
     let link;
     for (const row of unread.length ? unread : links.slice(0, 1)) {
-      if (!(await sentByMe(row).catch(() => false))) {
+      if (!(await nothingNew(row).catch(() => false))) {
         link = row;
         break;
       }
@@ -1262,9 +1276,61 @@
     // The list fills in while the page loads; that isn't new mail.
     const rose = lastUnread >= 0 && count > lastUnread && performance.now() > 10000;
     lastUnread = count;
+    // A theme can show it (attr(data-fmess-unread)).
+    if (count) document.documentElement.setAttribute('data-fmess-unread', count);
+    else document.documentElement.removeAttribute('data-fmess-unread');
     invoke('set_unread_count', { count }).catch(() => {});
     if (rose && !document.hasFocus()) setTimeout(notifyNewestChat, 1500);
   }, 2000);
+
+  // A theme can draw buttons on the chat list (the Zalo look's bar down its
+  // left side) and list them in --fmess-buttons on the list: "name left top
+  // size" each, comma-separated, a negative top counting from the bottom.
+  // fMess lights the one under the pointer (--fmess-hover-left/-top on the
+  // list) and runs those it knows: "account" opens the account menu, as the
+  // account button does, and "settings" opens fMess's Settings.
+  const themeButtonAt = (list, x, y) => {
+    const box = list.getBoundingClientRect();
+    for (const spec of getComputedStyle(list).getPropertyValue('--fmess-buttons').split(',')) {
+      const [name, left, top, size] = spec.trim().replace(/"/g, '').split(/\s+/);
+      if (!name || !(Number(size) > 0)) continue;
+      const button = { name, left: box.left + Number(left), size: Number(size) };
+      button.top = Number(top) < 0 ? box.bottom + Number(top) - button.size : box.top + Number(top);
+      if (x >= button.left && x <= button.left + button.size && y >= button.top && y <= button.top + button.size) return button;
+    }
+    return null;
+  };
+  let hoveredList = null;
+  document.addEventListener(
+    'mousemove',
+    (event) => {
+      const list = event.target instanceof Element && event.target.closest('[role="navigation"]');
+      const unlight = (el) => (el.style.removeProperty('--fmess-hover-top'), el.style.removeProperty('cursor'));
+      if (hoveredList && hoveredList !== list) unlight(hoveredList);
+      hoveredList = list || null;
+      if (!list) return;
+      const button = themeButtonAt(list, event.clientX, event.clientY);
+      if (!button) return unlight(list);
+      const box = list.getBoundingClientRect();
+      list.style.setProperty('--fmess-hover-left', `${button.left - box.left}px`);
+      list.style.setProperty('--fmess-hover-top', `${button.top - box.top}px`);
+      list.style.cursor = 'pointer';
+    },
+    { passive: true },
+  );
+  document.addEventListener(
+    'click',
+    (event) => {
+      const list = event.target instanceof Element && event.target.closest('[role="navigation"]');
+      const button = list && themeButtonAt(list, event.clientX, event.clientY);
+      if (!button || !['account', 'settings'].includes(button.name)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (button.name === 'settings') invoke('open_settings').catch(() => {});
+      else invoke('show_account_menu', { name: currentAccount()?.name ?? '', x: button.left + button.size + 6, y: button.top }).catch(() => {});
+    },
+    true,
+  );
 
   // Called from Rust when the user clicks a native notification.
   window.__fmessNotificationClicked = (id, thread) => {
@@ -1382,6 +1448,10 @@
     await loadModules(['LSDatabaseSingleton']);
     const db = await window.require('LSDatabaseSingleton').LSDatabaseSingleton;
     contactPicture = (await db.tables.contacts.get(int64Key(me)))?.profilePictureUrl || contactPicture;
+    // A theme can show your picture and name (var(--fmess-avatar), attr(data-fmess-name)).
+    const root = document.documentElement;
+    if (contactPicture) root.style.setProperty('--fmess-avatar', `url("${contactPicture}")`);
+    root.setAttribute('data-fmess-name', window.require('CurrentUserInitialData').NAME || '');
   };
   const currentAccount = () => {
     try {
@@ -1454,7 +1524,5 @@
   // Called by fMess after every page load and when its settings change.
   window.__fmessApplySettings = (next) => {
     privacy.blockTyping = Boolean(next.blockTyping);
-    showBar = Boolean(next.showFacebookBar);
-    document.documentElement.toggleAttribute(SHOW_BAR, showBar);
   };
 })();

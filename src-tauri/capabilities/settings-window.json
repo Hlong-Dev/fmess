@@ -8,7 +8,6 @@
   "permissions": [
     "allow-get-settings",
     "allow-update-settings",
-    "allow-toggle-facebook-bar",
     "allow-set-messenger-pref",
     "allow-open-messenger-preferences",
     "allow-test-notification"

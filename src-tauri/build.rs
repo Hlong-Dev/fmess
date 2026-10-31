@@ -10,13 +10,12 @@ fn main() {
                 "set_viewer_open",
                 "get_settings",
                 "update_settings",
-                "toggle_facebook_bar",
                 "show_account_menu",
                 "sync_messenger_prefs",
-                "set_facebook_bar",
                 "set_messenger_pref",
                 "open_messenger_preferences",
                 "test_notification",
+                "open_settings",
             ])),
     )
     .expect("failed to run tauri-build");

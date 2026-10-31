@@ -71,6 +71,12 @@ pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -
     Ok(())
 }
 
+/// Called by the Messenger page (a theme's Settings button).
+#[tauri::command]
+pub fn open_settings<R: Runtime>(app: AppHandle<R>) {
+    open_settings_window(&app);
+}
+
 pub fn open_settings_window<R: Runtime>(app: &AppHandle<R>) {
     if let Some(window) = app.get_webview_window(SETTINGS_WINDOW) {
         let _ = window.show();
@@ -127,14 +133,6 @@ fn set_title_visible<R: Runtime>(window: &tauri::WebviewWindow<R>, visible: bool
             NSWindowTitleVisibility::Hidden
         });
     });
-}
-
-/// Shows or hides Facebook's top bar (and with it the account menu).
-#[tauri::command]
-pub fn toggle_facebook_bar<R: Runtime>(app: AppHandle<R>) {
-    if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
-        let _ = window.eval("window.__fmessToggleFacebookBar?.()");
-    }
 }
 
 /// Facebook lands on the news feed after logging in, but fMess is for chats.

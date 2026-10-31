@@ -18,7 +18,7 @@
     "allow-set-viewer-open",
     "allow-show-account-menu",
     "allow-sync-messenger-prefs",
-    "allow-set-facebook-bar",
+    "allow-open-settings",
     "core:window:allow-start-dragging",
     "core:window:allow-internal-toggle-maximize"
   ]

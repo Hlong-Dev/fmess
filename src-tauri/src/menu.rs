@@ -15,7 +15,6 @@ const MESSAGES: &str = "messages";
 const RELOAD: &str = "reload";
 const BACK: &str = "back";
 const FORWARD: &str = "forward";
-const FACEBOOK_BAR: &str = "facebook-bar";
 const SEARCH: &str = "search";
 const NEW_MESSAGE: &str = "new-message";
 const NEXT_CHAT: &str = "next-chat";
@@ -36,7 +35,6 @@ pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
             &MenuItem::with_id(app, SHOW, "Show fMess", true, None::<&str>)?,
             &MenuItem::with_id(app, MESSAGES, "Open Chats", true, None::<&str>)?,
             &MenuItem::with_id(app, RELOAD, "Reload", true, None::<&str>)?,
-            &MenuItem::with_id(app, FACEBOOK_BAR, "Show/Hide Facebook Bar", true, None::<&str>)?,
             &MenuItem::with_id(app, SETTINGS, "Settings…", true, None::<&str>)?,
             &MenuItem::with_id(app, CHECK_FOR_UPDATES, "Check for Updates…", true, None::<&str>)?,
             &MenuItem::with_id(app, ABOUT, "About fMess", true, None::<&str>)?,
@@ -134,14 +132,6 @@ fn app_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
                 &MenuItem::with_id(app, ZOOM_IN, "Zoom In", true, Some("CmdOrCtrl+="))?,
                 &MenuItem::with_id(app, ZOOM_OUT, "Zoom Out", true, Some("CmdOrCtrl+-"))?,
                 &PredefinedMenuItem::separator(app)?,
-                &MenuItem::with_id(
-                    app,
-                    FACEBOOK_BAR,
-                    "Show/Hide Facebook Bar",
-                    true,
-                    Some("CmdOrCtrl+Shift+B"),
-                )?,
-                &PredefinedMenuItem::separator(app)?,
             ],
             0,
         )?;
@@ -200,7 +190,6 @@ pub fn handle<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
                 let _ = window.eval("history.forward()");
             }
         }
-        FACEBOOK_BAR => webview::toggle_facebook_bar(app.clone()),
         SETTINGS => webview::open_settings_window(app),
         ABOUT => about::show(app),
         CHECK_FOR_UPDATES => update::check_now(app),
