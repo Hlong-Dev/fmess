@@ -358,10 +358,10 @@
       window.require('Bootloader').loadModules(names, () => (clearTimeout(timer), resolve()), 'fmess');
     });
   const moduleFunction = (module) => (typeof module === 'function' ? module : module.default);
-  // Lightspeed keeps 64-bit numbers as [high, low], and keys each account's
-  // settings by its user id that way.
+  // Lightspeed keeps 64-bit numbers as [high, low], and keys rows by their id
+  // that way (an account's settings, a contact, a chat).
   const int64 = (value) => (Array.isArray(value) ? (BigInt(value[0]) << 32n) + BigInt(value[1] >>> 0) : BigInt(value ?? 0));
-  const accountKey = (id) => [Number(BigInt(id) >> 32n), Number(BigInt(id) & 0xffffffffn)];
+  const int64Key = (id) => [Number(BigInt(id) >> 32n), Number(BigInt(id) & 0xffffffffn)];
 
   // The rest of Messenger's Preferences (⋯ → Preferences) belong to the
   // account as well. fMess's Settings show them: the page reads them here
@@ -383,7 +383,7 @@
     const query = window.require('useCometHomeChatSettingsQuery.graphql');
     const { viewer } = (await relay.fetchQuery(env, query, {}, { fetchPolicy: 'store-or-network' }).toPromise()) ?? {};
     const db = await database.LSDatabaseSingleton;
-    const notifications = await db.tables.notification_settings.get(accountKey(me));
+    const notifications = await db.tables.notification_settings.get(int64Key(me));
     // Right after loading, Messenger may not have synced its settings yet.
     if (!notifications) return null;
     return {
@@ -1208,15 +1208,36 @@
     return { name: texts[0] ?? '', preview };
   };
 
+  // Whether the newest message in a chat row is your own, as Messenger's copy
+  // of the chat list says.
+  const sentByMe = async (row) => {
+    const thread = row.getAttribute('href')?.match(/\/t\/(\d+)/)?.[1];
+    const me = currentUserId();
+    if (!thread || !me) return false;
+    await loadModules(['ReQL', 'LSDatabaseSingleton']);
+    const ReQL = window.require('ReQL');
+    const db = await window.require('LSDatabaseSingleton').LSDatabaseSingleton;
+    const chat = await ReQL.firstAsync(ReQL.fromTableAscending(db.tables.threads).getKeyRange(int64Key(thread)));
+    return Boolean(chat) && int64(chat.snippetSenderContactId) === BigInt(me);
+  };
+
   // Facebook raises its own notifications (see MODULE_PATCHES). In case it
   // stops doing so, notify about the newest unread chat when the count rises
   // and Facebook stayed quiet.
-  const notifyNewestChat = () => {
-    // Messenger itself stays quiet during Do Not Disturb.
-    if (isMuted() || Date.now() - lastPageNotification < 4000) return;
+  const notifyNewestChat = async () => {
     const links = chatLinks();
-    const link = links.find(isUnreadChat) ?? links[0];
-    if (!link) return;
+    const unread = links.filter(isUnreadChat);
+    // A message you send from your phone in an encrypted chat can leave that
+    // chat unread here; Messenger doesn't notify about your own messages.
+    let link;
+    for (const row of unread.length ? unread : links.slice(0, 1)) {
+      if (!(await sentByMe(row).catch(() => false))) {
+        link = row;
+        break;
+      }
+    }
+    // Messenger itself stays quiet during Do Not Disturb.
+    if (!link || isMuted() || Date.now() - lastPageNotification < 4000) return;
     const chat = chatSummary(link);
     const href = link.getAttribute('href');
     raisingFallback = true;
@@ -1360,7 +1381,7 @@
     if (!me) return;
     await loadModules(['LSDatabaseSingleton']);
     const db = await window.require('LSDatabaseSingleton').LSDatabaseSingleton;
-    contactPicture = (await db.tables.contacts.get(accountKey(me)))?.profilePictureUrl || contactPicture;
+    contactPicture = (await db.tables.contacts.get(int64Key(me)))?.profilePictureUrl || contactPicture;
   };
   const currentAccount = () => {
     try {
