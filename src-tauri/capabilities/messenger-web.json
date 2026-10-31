@@ -1,0 +1,25 @@
+{
+  "$schema": "../gen/schemas/remote-schema.json",
+  "identifier": "messenger-web",
+  "description": "Lets facebook.com/messages show and clear native notifications, report its unread chat count, switch the title bar for the photo viewer, open the account menu, report Messenger's preferences, keep Facebook's bar shown or hidden and drag the window by its title strip, and nothing else.",
+  "windows": [
+    "main"
+  ],
+  "remote": {
+    "urls": [
+      "https://facebook.com",
+      "https://*.facebook.com"
+    ]
+  },
+  "permissions": [
+    "allow-notify",
+    "allow-clear-notifications",
+    "allow-set-unread-count",
+    "allow-set-viewer-open",
+    "allow-show-account-menu",
+    "allow-sync-messenger-prefs",
+    "allow-set-facebook-bar",
+    "core:window:allow-start-dragging",
+    "core:window:allow-internal-toggle-maximize"
+  ]
+}

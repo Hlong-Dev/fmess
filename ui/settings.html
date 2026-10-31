@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fMess Settings</title>
+<style>
+  :root {
+    --bg: #f2f2f7;
+    --group: #ffffff;
+    --text: #1c1c1e;
+    --muted: #6e6e73;
+    --separator: rgba(60, 60, 67, 0.15);
+    --accent: #0a7cff;
+    --switch-off: #d1d1d6;
+    --error: #d70015;
+    --control: #ffffff;
+    --control-border: rgba(0, 0, 0, 0.14);
+    --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 12'%3E%3Cpath d='M1 4.5 4 1.5l3 3M1 7.5l3 3 3-3' fill='none' stroke='%236e6e73' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e;
+      --group: #2c2c2e;
+      --text: #f2f2f7;
+      --muted: #98989f;
+      --separator: rgba(235, 235, 245, 0.15);
+      --switch-off: #48484a;
+      --error: #ff6961;
+      --control: #3a3a3c;
+      --control-border: rgba(255, 255, 255, 0.1);
+      --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 12'%3E%3Cpath d='M1 4.5 4 1.5l3 3M1 7.5l3 3 3-3' fill='none' stroke='%23c7c7cc' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px 20px 28px;
+    background: var(--bg);
+    color: var(--text);
+    font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  h2 {
+    margin: 20px 4px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  /* Only the page's first heading; Calls opens a section of its own. */
+  body > h2:first-child { margin-top: 0; }
+  .group { background: var(--group); border-radius: 10px; overflow: hidden; }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    min-height: 44px;
+  }
+  .row + .row { border-top: 1px solid var(--separator); }
+  .row.disabled { opacity: 0.45; }
+  .label { flex: 1; }
+  .hint { display: block; margin-top: 2px; font-size: 11.5px; color: var(--muted); }
+  kbd { font: inherit; }
+
+  .switch { position: relative; width: 38px; height: 22px; flex: none; }
+  .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .switch span {
+    position: absolute; inset: 0; border-radius: 11px;
+    background: var(--switch-off); transition: background 0.15s; pointer-events: none;
+  }
+  .switch span::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    transition: transform 0.15s;
+  }
+  .switch input:checked + span { background: var(--accent); }
+  .switch input:checked + span::after { transform: translateX(16px); }
+  .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Flat controls: WebKit's own popup buttons keep a light gradient that
+     smears in the dark theme. */
+  select, button {
+    font: inherit;
+    color: var(--text);
+    background-color: var(--control);
+    border: 1px solid var(--control-border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    min-height: 26px;
+    box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.08);
+  }
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+    padding-right: 26px;
+    background-image: var(--chevron);
+    background-repeat: no-repeat;
+    background-position: right 9px center;
+    background-size: 8px 12px;
+  }
+  select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button { cursor: pointer; }
+  button:active { opacity: 0.7; }
+
+  .note { margin: 18px 4px 0; font-size: 11.5px; color: var(--muted); }
+  #error { margin: 12px 4px 0; color: var(--error); font-size: 12px; min-height: 1em; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+  <h2>General</h2>
+  <div class="group">
+    <label class="row">
+      <span class="label">Open fMess at login</span>
+      <span class="switch"><input type="checkbox" data-key="launchAtLogin"><span></span></span>
+    </label>
+    <label class="row" data-needs="launchAtLogin">
+      <span class="label">Start in the background
+        <span class="hint">When opened at login, stay in the <span data-tray></span> instead of showing the window.</span>
+      </span>
+      <span class="switch"><input type="checkbox" data-key="startHidden"><span></span></span>
+    </label>
+    <label class="row">
+      <span class="label">Keep running when the window is closed
+        <span class="hint">fMess stays in the <span data-tray></span> so messages still arrive.</span>
+      </span>
+      <span class="switch"><input type="checkbox" data-key="closeToTray"><span></span></span>
+    </label>
+  </div>
+
+  <h2>Messenger</h2>
+  <div class="group" id="messenger">
+    <div class="row" data-messenger-row>
+      <span class="label">Active Status
+        <span class="hint">Who sees you're active. <span data-active-status></span></span>
+      </span>
+      <button type="button" data-open="activeStatus">Change…</button>
+    </div>
+    <label class="row" data-messenger-row>
+      <span class="label">Notification sounds
+        <span class="hint">Sounds for incoming messages, calls, video chats and in-app sounds.</span>
+      </span>
+      <span class="switch"><input type="checkbox" data-pref="soundsOn"><span></span></span>
+    </label>
+    <label class="row" data-messenger-row>
+      <span class="label">Do Not Disturb
+        <span class="hint">Mutes Messenger on all your devices.</span>
+      </span>
+      <select data-pref="muteFor">
+        <option value="0">Off</option>
+        <option value="900000">15 minutes</option>
+        <option value="3600000">1 hour</option>
+        <option value="28800000">8 hours</option>
+        <option value="86400000">24 hours</option>
+        <option value="-1">Until I turn it off</option>
+        <option value="on" hidden></option>
+      </select>
+    </label>
+    <label class="row" data-messenger-row>
+      <span class="label">Dark Mode
+        <span class="hint">Messenger's appearance. Automatic follows your system.</span>
+      </span>
+      <select data-pref="darkMode">
+        <option value="DISABLED">Off</option>
+        <option value="ENABLED">On</option>
+        <option value="USE_SYSTEM">Automatic</option>
+      </select>
+    </label>
+    <div class="row" data-messenger-row>
+      <span class="label">More Messenger preferences
+        <span class="hint">Payments, message delivery and blocking.</span>
+      </span>
+      <button type="button" data-open="">Open…</button>
+    </div>
+  </div>
+  <p class="note" data-messenger-missing hidden>These belong to your Messenger account. Open fMess's window and sign in to change them here.</p>
+
+  <h2>Notifications</h2>
+  <div class="group">
+    <label class="row">
+      <span class="label">Show notifications</span>
+      <span class="switch"><input type="checkbox" data-key="notifications"><span></span></span>
+    </label>
+    <label class="row" data-needs="notifications">
+      <span class="label">Show sender and message
+        <span class="hint">When off, notifications only say “New message”.</span>
+      </span>
+      <span class="switch"><input type="checkbox" data-key="notificationPreview"><span></span></span>
+    </label>
+    <label class="row">
+      <span class="label">Unread count on the app icon</span>
+      <span class="switch"><input type="checkbox" data-key="badge"><span></span></span>
+    </label>
+  </div>
+
+  <h2>Privacy</h2>
+  <div class="group">
+    <label class="row">
+      <span class="label">Block Typing in Chat
+        <span class="hint">Hide your typing indicator in Facebook chat.</span>
+      </span>
+      <span class="switch"><input type="checkbox" data-key="blockTyping"><span></span></span>
+    </label>
+  </div>
+
+  <h2>Appearance</h2>
+  <div class="group">
+    <label class="row">
+      <span class="label">Text size
+        <span class="hint"><kbd data-zoom-shortcuts></kbd></span>
+      </span>
+      <select data-key="zoom">
+        <option value="0.5">50%</option>
+        <option value="0.67">67%</option>
+        <option value="0.75">75%</option>
+        <option value="0.8">80%</option>
+        <option value="0.9">90%</option>
+        <option value="1">100%</option>
+        <option value="1.1">110%</option>
+        <option value="1.25">125%</option>
+        <option value="1.5">150%</option>
+        <option value="1.75">175%</option>
+        <option value="2">200%</option>
+      </select>
+    </label>
+    <div class="row">
+      <span class="label">Facebook top bar
+        <span class="hint">Facebook's own account menu. <kbd data-bar-shortcut></kbd></span>
+      </span>
+      <button type="button" id="toggle-bar">Show / Hide</button>
+    </div>
+  </div>
+
+  <section data-only="macos" hidden>
+    <h2>Calls</h2>
+    <div class="group">
+      <label class="row">
+        <span class="label">Allow calls in encrypted chats
+          <span class="hint">Turns on call support Facebook already ships for Safari-like browsers but hasn't enabled for everyone. Turn it off if calls misbehave.</span>
+        </span>
+        <span class="switch"><input type="checkbox" data-key="macCalls"><span></span></span>
+      </label>
+    </div>
+  </section>
+
+  <p id="error" role="alert"></p>
+
+<script>
+  const invoke = (command, args) => window.__TAURI_INTERNALS__.invoke(command, args);
+  const inputs = [...document.querySelectorAll('[data-key]')];
+  const errorBox = document.getElementById('error');
+  let current = null;
+
+  function render(view) {
+    current = view;
+    for (const input of inputs) {
+      const value = view[input.dataset.key];
+      if (input.type === 'checkbox') input.checked = Boolean(value);
+      else input.value = String(value);
+    }
+    for (const row of document.querySelectorAll('[data-needs]')) {
+      const enabled = Boolean(view[row.dataset.needs]);
+      row.classList.toggle('disabled', !enabled);
+      row.querySelector('input').disabled = !enabled;
+    }
+    const mac = view.platform === 'macos';
+    for (const el of document.querySelectorAll('[data-only="macos"]')) el.hidden = !mac;
+    for (const el of document.querySelectorAll('[data-tray]')) el.textContent = mac ? 'menu bar' : 'tray';
+    document.querySelector('[data-bar-shortcut]').textContent = mac ? '⌘⇧B' : 'Ctrl+Shift+B';
+    document.querySelector('[data-zoom-shortcuts]').textContent = mac ? '⌘+  ⌘−  ⌘0' : 'Ctrl+  Ctrl−  Ctrl+0';
+    renderMessenger(view.messenger);
+  }
+
+  // Messenger's own Preferences, reported by fMess's window; changes go back
+  // through it.
+  const prefInputs = [...document.querySelectorAll('[data-pref]')];
+  const pref = (name) => document.querySelector(`[data-pref="${name}"]`);
+  let shownPrefs = null;
+  function renderMessenger(prefs) {
+    const json = JSON.stringify(prefs ?? null);
+    if (json === shownPrefs) return;
+    shownPrefs = json;
+    document.querySelector('[data-messenger-missing]').hidden = Boolean(prefs);
+    for (const row of document.querySelectorAll('[data-messenger-row]')) row.classList.toggle('disabled', !prefs);
+    for (const input of [...prefInputs, ...document.querySelectorAll('[data-open]')]) input.disabled = !prefs;
+    if (!prefs) return;
+    pref('soundsOn').checked = prefs.soundsOn;
+    pref('darkMode').value = prefs.darkMode === 'ENABLED' || prefs.darkMode === 'USE_SYSTEM' ? prefs.darkMode : 'DISABLED';
+    const timed = prefs.muteUntil > 0 && prefs.muteUntil * 1000 > Date.now();
+    const until = pref('muteFor').querySelector('[value="on"]');
+    until.hidden = !timed;
+    if (timed) until.textContent = `Until ${new Date(prefs.muteUntil * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+    pref('muteFor').value = prefs.muteUntil < 0 ? '-1' : timed ? 'on' : '0';
+    document.querySelector('[data-active-status]').textContent =
+      prefs.activeStatusOn == null ? '' : prefs.activeStatusOn ? 'Now on.' : 'Now off.';
+  }
+  for (const input of prefInputs) {
+    input.addEventListener('change', () => {
+      if (input.value === 'on') return;
+      const name = input.dataset.pref;
+      const value = input.type === 'checkbox' ? input.checked : name === 'muteFor' ? Number(input.value) : input.value;
+      invoke('set_messenger_pref', { name, value }).then(() => { errorBox.textContent = ''; }, (err) => { errorBox.textContent = String(err); });
+    });
+  }
+  for (const button of document.querySelectorAll('[data-open]')) {
+    button.addEventListener('click', () => invoke('open_messenger_preferences', { section: button.dataset.open || null }));
+  }
+
+  async function save() {
+    const { launchAtLogin, platform, messenger, ...settings } = current;
+    for (const input of inputs) {
+      const key = input.dataset.key;
+      const value = input.type === 'checkbox' ? input.checked : Number(input.value);
+      if (key === 'launchAtLogin') continue;
+      settings[key] = value;
+    }
+    const wantsLaunchAtLogin = document.querySelector('[data-key="launchAtLogin"]').checked;
+    try {
+      render(await invoke('update_settings', { settings, launchAtLogin: wantsLaunchAtLogin }));
+      errorBox.textContent = '';
+    } catch (err) {
+      errorBox.textContent = String(err);
+      render(await invoke('get_settings'));
+    }
+  }
+
+  for (const input of inputs) input.addEventListener('change', save);
+  document.getElementById('toggle-bar').addEventListener('click', () => invoke('toggle_facebook_bar'));
+  invoke('get_settings').then(render, (err) => { errorBox.textContent = String(err); });
+  // Messenger's preferences may change while this is
+  // open: on the phone, in Messenger's own dialog, or by a change made here.
+  const refresh = () => invoke('get_settings').then(render, () => {});
+  window.addEventListener('focus', refresh);
+  setInterval(() => document.hidden || refresh(), 2000);
+</script>
+</body>
+</html>

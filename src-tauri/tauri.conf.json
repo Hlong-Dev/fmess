@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "fMess",
+  "version": "0.1.0",
+  "identifier": "io.github.toanbku.fmess",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "windows": [],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "SocialNetworking",
+    "shortDescription": "Unofficial desktop app for Messenger on the web",
+    "longDescription": "fMess wraps Messenger on the web in a small native window with notifications, an unread badge and a tray icon. Not affiliated with Meta.",
+    "copyright": "© 2026 fMess contributors. Messenger is a trademark of Meta Platforms, Inc.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "entitlements": "Entitlements.plist",
+      "minimumSystemVersion": "12.0"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVGMTBBQzY2MDZBQjIxMEQKUldRTklhc0dacXdRWC9jV3BuTHBCNWpkY1dleU1OaWFST0hBQlcxdnl1NUdobHRsMzBteTdCZHMK",
+      "endpoints": [
+        "https://github.com/toanbku/fmess/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}
