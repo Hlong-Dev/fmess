@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fMess — Messenger for your desktop</title>
+<meta name="description" content="Meta shut down the Messenger desktop app. fMess brings it back: a small, native app for your chats on macOS, Windows and Linux, with real notifications, calls and keyboard shortcuts. Free and open source.">
+<meta name="theme-color" content="#141417">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/icon-256.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://fmess.app/">
+<meta property="og:title" content="fMess — Messenger for your desktop">
+<meta property="og:description" content="The Messenger desktop app is gone. fMess brings your chats back to a native window on macOS, Windows and Linux.">
+<meta property="og:image" content="https://fmess.app/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" hreflang="en" href="https://fmess.app/?lang=en">
+<link rel="alternate" hreflang="vi" href="https://fmess.app/?lang=vi">
+<link rel="alternate" hreflang="x-default" href="https://fmess.app/">
+<script>
+  // Motion plays only when the visitor's system allows it (see assets/site.css).
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion');
+</script>
+<script src="assets/vendor/motion-14.3.0.js" defer></script>
+<script src="assets/site.js" defer></script>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#"><img src="assets/mark.png" alt="">fMess</a>
+    <div class="links">
+      <a href="#features" data-i18n="nav_features">Features</a>
+      <a href="#notifications" data-i18n="nav_notifications">Notifications</a>
+      <a href="#shortcuts" data-i18n="nav_shortcuts">Shortcuts</a>
+      <a href="#faq" data-i18n="nav_faq">FAQ</a>
+      <a href="https://github.com/toanbku/fmess">GitHub</a>
+    </div>
+    <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="vi" aria-pressed="false">VI</button></div>
+    <a class="btn btn-primary btn-small" href="#download" data-i18n="nav_download">Download</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow" data-i18n="eyebrow">The Messenger desktop app is gone. <b>This isn't.</b></span>
+      <h1 data-i18n="hero_title">Your chats, <span class="ink-text">back on your desktop.</span></h1>
+      <p class="lead" data-i18n="hero_lead">Your chats in a fast, native app, with real notifications, calls and shortcuts.</p>
+      <div class="cta">
+        <a class="btn btn-primary" id="download-hero" href="https://github.com/toanbku/fmess/releases/latest">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+          <span data-i18n="download_hero">Download fMess</span>
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/toanbku/fmess">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.54-3.88-1.54-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.27 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+          <span data-i18n="star">Star on GitHub</span>
+        </a>
+      </div>
+      <div class="meta"><span data-i18n="meta_free">Free and open source</span><span data-i18n="meta_platforms">macOS, Windows, Linux</span><span data-i18n="meta_small">A few MB, no Chromium</span></div>
+    </div>
+
+    <div class="stage" aria-hidden="true">
+      <div class="window">
+        <div class="lights"><i></i><i></i><i></i></div>
+        <aside class="side">
+          <h4 data-i18n="mock_chats">Chats</h4>
+          <div class="search" data-i18n="mock_search">Search Messenger</div>
+          <div class="row active"><span class="av a1">M</span><div><b>Mia Chen</b><small data-i18n="mock_dinner">Dinner tonight? 🍜</small></div></div>
+          <div class="row unread"><span class="av a4">D</span><div><b>Design team</b><small data-i18n="mock_icons">Leo: new icons are up!</small></div></div>
+          <div class="row"><span class="av a2">S</span><div><b>Sam Rivera</b><small data-i18n="mock_see_you">You: see you at 8</small></div></div>
+          <div class="row"><span class="av a3">J</span><div><b>Jun Park</b><small data-i18n="mock_photo">Sent a photo</small></div></div>
+          <div class="row"><span class="av a5">A</span><div><b>Ana Souza</b><small data-i18n="mock_haha">Haha same 😂</small></div></div>
+        </aside>
+        <div class="chat">
+          <header><span class="av a1">M</span><div><b>Mia Chen</b><small data-i18n="mock_active">Active now</small></div></header>
+          <div class="msgs">
+            <div class="bubble in" data-i18n="mock_b1">Are you still on the new laptop?</div>
+            <div class="bubble out" data-i18n="mock_b2">Yep, and Messenger is back on it 🎉</div>
+            <div class="bubble in" data-i18n="mock_b3">Wait, I thought they killed the app</div>
+            <div class="bubble out" data-i18n="mock_b4">They did. This is fMess. Notifications, calls, everything.</div>
+            <div class="bubble in" data-i18n="mock_dinner">Dinner tonight? 🍜</div>
+            <div class="typing"><i></i><i></i><i></i></div>
+          </div>
+          <div class="composer">Aa</div>
+        </div>
+      </div>
+      <div class="note">
+        <div class="who"><span class="av a1">M</span><img src="assets/icon-256.png" alt=""></div>
+        <div><b>Mia Chen</b><p data-i18n="mock_dinner">Dinner tonight? 🍜</p></div>
+        <time data-i18n="time_now">now</time>
+        <div class="reply"><span data-i18n="reply">Reply…</span><em data-i18n="send">Send</em></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <h2 data-i18n="features_title">Everything the old app did. <span class="ink-text">And more.</span></h2>
+    <div class="grid">
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 20a1.9 1.9 0 0 0 3.4 0"/></svg></div>
+        <h3 data-i18n="card1_title">Real notifications</h3>
+        <p data-i18n="card1_text">Sender photos and quick reply, right in the banner.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l5-3v10l-5-3z"/><rect x="3" y="6" width="12" height="12" rx="3"/></svg></div>
+        <h3 data-i18n="card2_title">Voice and video calls</h3>
+        <p data-i18n="card2_text">Encrypted chats included.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></div>
+        <h3 data-i18n="card3_title">Just your chats</h3>
+        <p data-i18n="card3_text">No feed, no reels, no distractions.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M9 12h6"/></svg></div>
+        <h3 data-i18n="card4_title">Block Typing</h3>
+        <p data-i18n="card4_text">Draft in peace. Nobody sees “typing…”.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></div>
+        <h3 data-i18n="card5_title">Settings in one place</h3>
+        <p data-i18n="card5_text">Sounds, Do Not Disturb and dark mode, synced with your phone.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></div>
+        <h3 data-i18n="card6_title">Keyboard first</h3>
+        <p data-i18n="card6_text">⌘K to search, ⌘1–9 to jump, ⌘+ to zoom.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
+        <h3 data-i18n="card7_title">Zoomable photos</h3>
+        <p data-i18n="card7_text">Pinch or double-click to zoom in.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="6" r="3"/><path d="M13 4H6a3 3 0 0 0-3 3v11a3 3 0 0 0 3 3h11a3 3 0 0 0 3-3v-7"/></svg></div>
+        <h3 data-i18n="card8_title">Always there</h3>
+        <p data-i18n="card8_text">Dock badge, tray icon, runs in the background.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
+        <h3 data-i18n="card9_title">Small and fast</h3>
+        <p data-i18n="card9_text">A few MB. No bundled browser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="notifications" class="soft">
+  <div class="wrap split">
+    <div>
+      <h2 data-i18n="notifications_title">Reply without <span class="ink-text">switching apps.</span></h2>
+      <p class="section-lead" data-i18n="notifications_lead">Photos, group names and quick reply in every notification, like the old app (macOS).</p>
+    </div>
+    <div class="stack" aria-hidden="true">
+      <div class="note"><div class="who"><span class="av a1">M</span><img src="assets/icon-256.png" alt=""></div><div><b>Mia Chen</b><p data-i18n="mock_dinner">Dinner tonight? 🍜</p></div><time data-i18n="time_now">now</time><div class="reply"><span data-i18n="reply_sure">Sure, 7pm?</span><em data-i18n="send">Send</em></div></div>
+      <div class="note"><div class="group-av"><span class="av a4">L</span><span class="av a3">J</span></div><div><b>Design team</b><p data-i18n="note_icons">Leo: New icons are up, take a look 👀</p></div><time data-i18n="time_1m">1m ago</time></div>
+      <div class="note"><div class="who"><span class="av a2">S</span><img src="assets/icon-256.png" alt=""></div><div><b>Sam Rivera</b><p data-i18n="note_way">On my way!</p></div><time data-i18n="time_2m">2m ago</time></div>
+    </div>
+  </div>
+</section>
+
+<section id="privacy">
+  <div class="wrap split">
+    <div>
+      <h2 data-i18n="privacy_title">Private <span class="ink-text">by design.</span></h2>
+    </div>
+    <ul class="checks">
+      <li data-i18n="point5"><b>No fMess server.</b> You sign in on Facebook's own page.</li>
+      <li data-i18n="point6"><b>No tracking in the app.</b> Nothing is sent anywhere.</li>
+      <li data-i18n="point9"><b>Open source.</b> MIT, on GitHub.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="shortcuts" class="soft">
+  <div class="wrap">
+    <h2 data-i18n="shortcuts_title">Shortcuts your hands <span class="ink-text">already know.</span></h2>
+    <p class="section-lead" data-i18n="shortcuts_lead">Ctrl on Windows and Linux.</p>
+    <div class="keys">
+      <div class="key"><span data-i18n="key1">Search chats</span><kbd>⌘ K</kbd></div>
+      <div class="key"><span data-i18n="key2">New message</span><kbd>⌘ N</kbd></div>
+      <div class="key"><span data-i18n="key3">Open the 1st … 9th chat</span><kbd>⌘ 1 … 9</kbd></div>
+      <div class="key"><span data-i18n="key4">Next / previous chat</span><kbd>⌃ Tab</kbd></div>
+      <div class="key"><span data-i18n="key5">Back to the chat list</span><kbd>⌘ ⇧ H</kbd></div>
+      <div class="key"><span data-i18n="key6">Zoom in / out / actual size</span><kbd>⌘ + &nbsp;⌘ − &nbsp;⌘ 0</kbd></div>
+      <div class="key"><span data-i18n="key7">Settings</span><kbd>⌘ ,</kbd></div>
+      <div class="key"><span data-i18n="key8">Show Facebook's top bar</span><kbd>⌘ ⇧ B</kbd></div>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <h2 data-i18n="download_title">Get fMess. <span class="ink-text">It's free.</span></h2>
+    <div class="platforms">
+      <div class="card platform">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.1-1.2 2.9-2.4.9-1.3 1.3-2.6 1.3-2.7 0 0-2.5-1-2.5-3.9ZM14 5.4c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4Z"/></svg>
+        <h3>macOS</h3>
+        <p class="muted" data-i18n="mac_text">macOS 12+, Apple silicon and Intel</p>
+        <a class="btn btn-primary" href="https://github.com/toanbku/fmess/releases/latest" data-i18n="mac_button">Download for Mac</a>
+      </div>
+      <div class="card platform">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.3l7.4-1v7.2H3zm0 13.4l7.4 1v-7.1H3zm8.3 1.1L21 21v-8.4h-9.7zm0-15.6v7.3H21V3z"/></svg>
+        <h3>Windows</h3>
+        <p class="muted" data-i18n="windows_text">Windows 10 and 11</p>
+        <a class="btn btn-primary" href="https://github.com/toanbku/fmess/releases/latest" data-i18n="windows_button">Download for Windows</a>
+      </div>
+      <div class="card platform">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-2.2 0-3.5 1.8-3.5 4.5 0 1.6-.6 2.6-1.5 4C5.6 12.6 4 15 5 18c.6 1.8 2.6 3 4 2.4.9-.4 1.8-.6 3-.6s2.1.2 3 .6c1.4.6 3.4-.6 4-2.4 1-3-.6-5.4-2-7.5-.9-1.4-1.5-2.4-1.5-4C15.5 3.8 14.2 2 12 2Z"/><circle cx="10.5" cy="7" r=".6" fill="currentColor"/><circle cx="13.5" cy="7" r=".6" fill="currentColor"/></svg>
+        <h3>Linux</h3>
+        <p class="muted" data-i18n="linux_text">.deb, .rpm, AppImage</p>
+        <a class="btn btn-primary" href="https://github.com/toanbku/fmess/releases/latest" data-i18n="linux_button">Download for Linux</a>
+      </div>
+    </div>
+    <p class="note-mac" data-i18n="mac_note">Mac says it can't check fMess? Right-click it and choose <b>Open</b>.</p>
+  </div>
+</section>
+
+<section id="faq" class="soft">
+  <div class="wrap">
+    <h2 data-i18n="faq_title">Questions</h2>
+    <details open><summary data-i18n="q1">Is fMess made by Meta?</summary><p data-i18n="a1">No. It's an independent, open-source app that shows facebook.com/messages in its own window.</p></details>
+    <details><summary data-i18n="q2">Why not messenger.com?</summary><p data-i18n="a2">Meta shut it down in April 2026. Chats now live inside facebook.com.</p></details>
+    <details><summary data-i18n="q3">Is it safe to sign in?</summary><p data-i18n="a3">You sign in on Facebook's own page. fMess never sees your password and has no server.</p></details>
+    <details><summary data-i18n="q4">Do encrypted chats work?</summary><p data-i18n="a4">Yes: chats, calls on macOS, photos and voice messages.</p></details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p data-i18n="footer_copy">© 2026 fMess contributors · <a href="https://github.com/toanbku/fmess">GitHub</a> · MIT license</p>
+    <p data-i18n="footer_legal">fMess is not affiliated with, endorsed by or sponsored by Meta Platforms, Inc. Messenger and Facebook are trademarks of Meta Platforms, Inc.</p>
+  </div>
+</footer>
+
+</body>
+</html>
