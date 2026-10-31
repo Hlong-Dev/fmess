@@ -1,0 +1,104 @@
+name: Release
+
+# Push a tag like v0.2.0 to build every platform into a draft GitHub release.
+# Publishing that draft makes it the release the app's updater offers
+# (releases/latest/download/latest.json).
+#
+# Secrets:
+#   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+#       Sign the update archives; the app checks them against plugins.updater.pubkey.
+#   APPLE_CERTIFICATE (base64 .p12), APPLE_CERTIFICATE_PASSWORD, APPLE_SIGNING_IDENTITY,
+#   APPLE_PROVISIONING_PROFILE (base64)
+#       Optional. Sign the Mac app with Developer ID and the profile that allows
+#       Communication Notifications; without them the Mac build is unsigned.
+#   APPLE_ID, APPLE_PASSWORD (app-specific), APPLE_TEAM_ID
+#       Optional. Notarize the signed Mac app.
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+          - platform: ubuntu-22.04
+            target: ''
+          - platform: windows-latest
+            target: ''
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Linux dependencies
+        if: startsWith(matrix.platform, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+          key: ${{ matrix.target }}
+      - run: npm ci
+
+      # The Apple variables are set only when their secrets are: Tauri tries to
+      # sign (or notarize) as soon as a variable exists, even when it is empty.
+      - name: Choose build options
+        id: options
+        shell: bash
+        env:
+          PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
+          CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          NOTARY_ID: ${{ secrets.APPLE_ID }}
+          NOTARY_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          NOTARY_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          args="--config src-tauri/tauri.release.conf.json"
+          if [ -n "${{ matrix.target }}" ]; then args="$args --target ${{ matrix.target }}"; fi
+          if [ "$RUNNER_OS" = "macOS" ] && [ -n "$PROFILE" ] && [ -n "$CERTIFICATE" ]; then
+            mkdir -p src-tauri/signing
+            echo "$PROFILE" | base64 --decode > src-tauri/signing/fMess_Developer_ID.provisionprofile
+            args="$args --config src-tauri/tauri.signed.conf.json"
+            {
+              echo "APPLE_CERTIFICATE=$CERTIFICATE"
+              echo "APPLE_CERTIFICATE_PASSWORD=$CERTIFICATE_PASSWORD"
+              echo "APPLE_SIGNING_IDENTITY=$SIGNING_IDENTITY"
+            } >> "$GITHUB_ENV"
+            if [ -n "$NOTARY_ID" ] && [ -n "$NOTARY_PASSWORD" ] && [ -n "$NOTARY_TEAM" ]; then
+              {
+                echo "APPLE_ID=$NOTARY_ID"
+                echo "APPLE_PASSWORD=$NOTARY_PASSWORD"
+                echo "APPLE_TEAM_ID=$NOTARY_TEAM"
+              } >> "$GITHUB_ENV"
+            fi
+            echo "Signing the Mac app"
+          fi
+          echo "args=$args" >> "$GITHUB_OUTPUT"
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: fMess ${{ github.ref_name }}
+          releaseBody: See the assets below to download fMess for your system.
+          releaseDraft: true
+          includeUpdaterJson: true
+          args: ${{ steps.options.outputs.args }}
