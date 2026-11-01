@@ -18,7 +18,33 @@ on:
     tags: ['v*']
 
 jobs:
+  # One draft for every build to upload to. Each build used to find or create
+  # it by tag, and builds that started together each made their own (v0.1.12
+  # came out as two drafts, each with half the files and its own latest.json).
+  create-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.release.outputs.id }}
+    steps:
+      - id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          # A re-run uses the draft that is already there.
+          draft_id() { gh api "repos/$REPO/releases" --jq ".[] | select(.tag_name == \"$TAG\" and .draft) | .id" | head -1; }
+          id=$(draft_id)
+          if [ -z "$id" ]; then
+            gh release create "$TAG" --repo "$REPO" --draft --verify-tag --title "fMess $TAG" --notes "See the assets below to download fMess for your system."
+            id=$(draft_id)
+          fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: create-release
     permissions:
       contents: write
     strategy:
@@ -97,6 +123,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
+          releaseId: ${{ needs.create-release.outputs.id }}
+          # Still set, so latest.json points at this version's files.
           tagName: ${{ github.ref_name }}
           releaseName: fMess ${{ github.ref_name }}
           releaseBody: See the assets below to download fMess for your system.
@@ -128,3 +156,23 @@ jobs:
           done
           ls -la stable
           gh release upload "${{ github.ref_name }}" stable/* --clobber --repo "${{ github.repository }}"
+
+  # Each build adds its platforms to latest.json, the file the app's updater
+  # reads; make sure none went missing before the draft is published.
+  check:
+    needs: [create-release, build]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ID: ${{ needs.create-release.outputs.id }}
+        run: |
+          asset=$(gh api "repos/$REPO/releases/$ID" --jq '.assets[] | select(.name == "latest.json") | .id')
+          gh api -H "Accept: application/octet-stream" "repos/$REPO/releases/assets/$asset" > latest.json
+          for platform in darwin-aarch64 darwin-x86_64 linux-x86_64 windows-x86_64; do
+            jq -e ".platforms[\"$platform\"]" latest.json > /dev/null || { echo "latest.json has no $platform"; exit 1; }
+          done
+          jq -r '.platforms | keys | join(", ")' latest.json
