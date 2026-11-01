@@ -712,13 +712,6 @@
       --messenger-card-box-shadow: none !important;
     }
     html[${CHATS}] [role="main"] { box-shadow: -1px 0 0 var(--divider, var(--card-border-color)); }
-    /* The bar above the message box (replying, a link's preview) has fixed
-       heights made for Facebook's type; a theme's larger type overflowed
-       them, its second line on the line below. */
-    html[${CHATS}] [data-fmess-ui="composer-bar"],
-    html[${CHATS}] [data-fmess-ui="composer-bar"] > div,
-    html[${CHATS}] [data-fmess-ui="composer-bar"] > div > div { height: auto !important; }
-    html[${CHATS}] [data-fmess-ui="composer-bar"] > div { padding-bottom: 8px !important; }
     /* The same divider before the chat's details (the pane beside the
        messages, with the Search button). */
     html[${CHATS}] [role="main"] [data-fmess-ui="details"] {
@@ -2169,6 +2162,15 @@
   // own stylesheets.
   const THEME = 'fmess-theme';
   let theme = null;
+  // Under every theme. The bar above the message box (replying, a link's
+  // preview) has fixed heights made for Facebook's type; a theme's larger
+  // type overflowed them, its second line on the line below.
+  const UNDER_EVERY_THEME = `
+    html[${CHATS}] [data-fmess-ui="composer-bar"],
+    html[${CHATS}] [data-fmess-ui="composer-bar"] > div,
+    html[${CHATS}] [data-fmess-ui="composer-bar"] > div > div { height: auto !important; }
+    html[${CHATS}] [data-fmess-ui="composer-bar"] > div { padding-bottom: 8px !important; }
+  `;
   const lightColours = () => {
     let colours = '';
     for (const sheet of document.styleSheets) {
@@ -2197,7 +2199,7 @@
         style = document.createElement('style');
         style.id = THEME;
       }
-      style.textContent = (theme.light ? lightColours() : '') + theme.css;
+      style.textContent = (theme.light ? lightColours() : '') + UNDER_EVERY_THEME + theme.css;
       root.append(style);
     });
   };
