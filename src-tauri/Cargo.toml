@@ -1,6 +1,6 @@
 [package]
 name = "fmess"
-version = "0.1.14"
+version = "0.1.15"
 description = "Unofficial desktop client for Messenger on the web"
 authors = ["toanbku"]
 license = "MIT"
