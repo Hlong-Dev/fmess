@@ -30,7 +30,7 @@ const TRANSLATIONS = {
     shot_zalo: "Cùng đoạn chat đó với theme Zalo của fMess",
     shot_whatsapp: "Cùng đoạn chat đó với theme WhatsApp của fMess",
     themes_label: "Giao diện",
-    shot_note: "Cùng một cuộc trò chuyện, 3 “bộ cánh”: Messenger, Zalo hay WhatsApp chỉ cách nhau một cú click. Ảnh chụp thực tế từ fMess.",
+    shot_note: "Ngoài là Zalo, là WhatsApp, trong vẫn là Messenger: tha hồ “tám” giữa giờ làm, sếp đi ngang cũng tưởng bạn đang nhắn việc.",
     mock_chats: "Đoạn chat",
     mock_search: "Tìm kiếm trên Messenger",
     mock_dinner: "Tối nay đi ăn không? 🍜",
