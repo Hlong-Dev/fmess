@@ -5,17 +5,21 @@ use tauri_plugin_notification::NotificationExt;
 use crate::{settings, show_main_window, MAIN_WINDOW};
 
 /// Who wrote a message and in which chat, as inject.js reads them from
-/// Messenger. Pictures are base64.
+/// Messenger. Pictures are base64. The sender and the group only go into
+/// macOS's communication notifications.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Message {
     thread: String,
+    #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
     sender: String,
+    #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
     sender_picture: Option<String>,
     group: Option<Group>,
 }
 
 #[derive(Deserialize)]
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 pub struct Group {
     name: Option<String>,
     picture: Option<String>,
@@ -141,7 +145,7 @@ pub fn register_app_id<R: Runtime>(app: &AppHandle<R>) {
         if opened != 0 {
             return;
         }
-        let mut set = |name: &str, value: &str| {
+        let set = |name: &str, value: &str| {
             let name = wide(name);
             let value = wide(value);
             RegSetValueExW(key, name.as_ptr(), 0, REG_SZ, value.as_ptr().cast(), (value.len() * 2) as u32);
