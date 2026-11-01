@@ -30,7 +30,7 @@ const TRANSLATIONS = {
     shot_zalo: "Cùng đoạn chat đó với theme Zalo của fMess",
     shot_whatsapp: "Cùng đoạn chat đó với theme WhatsApp của fMess",
     themes_label: "Giao diện",
-    shot_note: "Một đoạn chat, ba giao diện. Ảnh chụp thật, tên đặt cho vui.",
+    shot_note: "Cùng một cuộc trò chuyện, 3 “bộ cánh”: Messenger, Zalo hay WhatsApp chỉ cách nhau một cú click. Ảnh chụp thực tế từ fMess.",
     mock_chats: "Đoạn chat",
     mock_search: "Tìm kiếm trên Messenger",
     mock_dinner: "Tối nay đi ăn không? 🍜",
@@ -167,6 +167,7 @@ const setLanguage = (language) => {
       el.setAttribute(attribute, words[el.dataset[key]] ?? english.get(el)[id]);
     }
   }
+  for (const img of document.querySelectorAll('img[data-shot]')) img.src = `assets/shot-${img.dataset.shot}${language === 'vi' ? '-vi' : ''}.webp`;
   // A page names its own title and description keys (data-title, data-description on body).
   const page = document.body.dataset;
   if (!english.has(document)) english.set(document, document.title);
@@ -242,26 +243,62 @@ document.addEventListener('click', (event) => {
 });
 
 
-// The hero's screenshots: Messenger's look, then the themes, in turn, unless
-// the visitor's system asks for less motion. Pressing a look shows it and
-// stops the turns.
+// The hero's screenshots, a carousel: Messenger's look, then the themes, one
+// sliding in after another (not when the visitor's system asks for less
+// motion). A look's button shows it; the pointer over the pictures holds the
+// turn; a swipe goes forwards or back.
 const shot = document.querySelector('.shot');
 if (shot) {
-  const frames = [...shot.querySelectorAll('.frame')];
+  const DWELL = 4000;
+  const track = shot.querySelector('.track');
+  const looks = track.children.length;
+  // A copy of the first look after the last, so the turn back to it slides on.
+  track.append(track.children[0].cloneNode(true));
   const buttons = [...shot.querySelectorAll('.looks button')];
-  let current = 0;
-  const show = (index) => {
-    current = index;
-    frames.forEach((frame, i) => frame.classList.toggle('on', i === index));
-    buttons.forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  shot.style.setProperty('--dwell', `${DWELL}ms`);
+  let index = 0;
+  let timer = null;
+  const show = (to) => {
+    index = to;
+    track.style.transform = `translateX(${-100 * to}%)`;
+    [...track.children].forEach((img, i) => img.classList.toggle('on', i === to));
+    buttons.forEach((button, i) => {
+      button.setAttribute('aria-pressed', String(i === to % looks));
+      button.classList.remove('run');
+    });
+    if (still || shot.classList.contains('paused')) return;
+    // Restart the bar under the look shown.
+    void buttons[to % looks].offsetWidth;
+    buttons[to % looks].classList.add('run');
+    clearTimeout(timer);
+    timer = setTimeout(() => show(index + 1), DWELL);
   };
-  const turns = matchMedia('(prefers-reduced-motion: reduce)').matches ? null : setInterval(() => show((current + 1) % frames.length), 3500);
-  buttons.forEach((button, i) =>
-    button.addEventListener('click', () => {
-      clearInterval(turns);
-      show(i);
-    }),
-  );
+  track.addEventListener('transitionend', (event) => {
+    if (event.target !== track || index !== looks) return;
+    track.classList.add('snap');
+    show(0);
+    void track.offsetWidth;
+    track.classList.remove('snap');
+  });
+  buttons.forEach((button, i) => button.addEventListener('click', () => show(i)));
+  const viewport = shot.querySelector('.viewport');
+  viewport.addEventListener('pointerenter', () => {
+    shot.classList.add('paused');
+    clearTimeout(timer);
+  });
+  viewport.addEventListener('pointerleave', () => {
+    shot.classList.remove('paused');
+    show(index % looks);
+  });
+  let from = null;
+  viewport.addEventListener('pointerdown', (event) => (from = event.clientX));
+  viewport.addEventListener('pointerup', (event) => {
+    const moved = from === null ? 0 : event.clientX - from;
+    from = null;
+    if (Math.abs(moved) > 40) show(((index % looks) + (moved < 0 ? 1 : looks - 1)) % looks);
+  });
+  show(0);
 }
 
 // Motion (motion.dev, assets/vendor): the hero plays in, sections rise as
@@ -280,7 +317,7 @@ function playMotion({ animate, inView, hover, press, stagger, spring }) {
   // The hero: the words, then the app.
   animate('.hero .eyebrow, .hero h1, .hero .lead, .hero .cta, .hero .meta', rise, { duration: 0.9, ease, delay: stagger(0.08) });
   animate('.shot', { opacity: [0, 1], y: [36, 0], scale: [0.97, 1] }, { duration: 1.1, ease, delay: 0.25 }).then(() =>
-    forever('.shot .frames', { y: [0, -8, 0] }, 8),
+    forever('.shot .viewport', { y: [0, -8, 0] }, 8),
   );
 
   // Sections rise as they come into view; the items of a list follow one another.

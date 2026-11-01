@@ -64,15 +64,17 @@
     </div>
 
     <div class="stage">
-      <figure class="shot">
-        <div class="frames">
-          <img class="frame on" src="assets/shot-messenger.webp" width="880" height="600" alt="fMess on a Mac: the chat list and a chat, in Messenger's own look" data-i18n-alt="shot_messenger">
-          <img class="frame" src="assets/shot-zalo.webp" width="880" height="600" alt="The same chat with fMess's Zalo theme" data-i18n-alt="shot_zalo">
-          <img class="frame" src="assets/shot-whatsapp.webp" width="880" height="600" alt="The same chat with fMess's WhatsApp theme" data-i18n-alt="shot_whatsapp">
+      <figure class="shot" aria-roledescription="carousel">
+        <div class="viewport">
+          <div class="track">
+            <img class="on" data-shot="messenger" src="assets/shot-messenger.webp" width="880" height="600" alt="fMess on a Mac: the chat list and a chat, in Messenger's own look" data-i18n-alt="shot_messenger">
+            <img data-shot="zalo" src="assets/shot-zalo.webp" width="880" height="600" alt="The same chat with fMess's Zalo theme" data-i18n-alt="shot_zalo">
+            <img data-shot="whatsapp" src="assets/shot-whatsapp.webp" width="880" height="600" alt="The same chat with fMess's WhatsApp theme" data-i18n-alt="shot_whatsapp">
+          </div>
         </div>
         <figcaption>
           <span class="looks" role="group" aria-label="Themes" data-i18n-label="themes_label"><button type="button" aria-pressed="true">Messenger</button><button type="button" aria-pressed="false">Zalo</button><button type="button" aria-pressed="false">WhatsApp</button></span>
-          <span class="shot-note" data-i18n="shot_note">One chat, three looks. Real screenshots, made-up names.</span>
+          <span class="shot-note" data-i18n="shot_note">Same chat, three looks: Messenger, Zalo or WhatsApp, one click apart. Captured straight from fMess.</span>
         </figcaption>
       </figure>
     </div>
