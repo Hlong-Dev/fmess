@@ -30,7 +30,7 @@
   } catch {}
 </script>
 <script src="assets/vendor/motion-14.3.0.js" defer></script>
-<script src="assets/site.js?v=10" defer></script>
+<script src="assets/site.js?v=11" defer></script>
 <link rel="stylesheet" href="assets/site.css?v=11">
 <!-- What fMess is, for search engines and AI assistants (schema.org). -->
 <script type="application/ld+json">
@@ -107,6 +107,14 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "Yes: chats, calls on macOS, photos and voice messages."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Windows says it can't find the WebView2 Runtime?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "fMess uses WebView2, the part of Windows that shows web pages in apps. Windows 10 and 11 come with it, but some trimmed-down builds remove it. Install it from Microsoft's WebView2 page (https://developer.microsoft.com/microsoft-edge/webview2, the Evergreen installer), then open fMess again."
       }
     }
   ]
@@ -388,6 +396,7 @@
     <details><summary data-i18n="q2">Why not messenger.com?</summary><p data-i18n="a2">Meta shut it down in April 2026. Chats now live inside facebook.com.</p></details>
     <details><summary data-i18n="q3">Is it safe to sign in?</summary><p data-i18n="a3">You sign in on Facebook's own page. fMess never sees your password and has no server.</p></details>
     <details><summary data-i18n="q4">Do encrypted chats work?</summary><p data-i18n="a4">Yes: chats, calls on macOS, photos and voice messages.</p></details>
+    <details><summary data-i18n="q5">Windows says it can't find the WebView2 Runtime?</summary><p data-i18n="a5">fMess uses WebView2, the part of Windows that shows web pages in apps. Windows 10 and 11 come with it, but some trimmed-down builds remove it. Install it from <a href="https://developer.microsoft.com/microsoft-edge/webview2">Microsoft's WebView2 page</a> (the Evergreen installer), then open fMess again.</p></details>
   </div>
 </section>
 

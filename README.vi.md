@@ -66,6 +66,8 @@ Trên Mac cũng cài được bằng Homebrew: `brew install --cask toanbku/tap/
 Nếu Windows báo "Windows protected your PC", bấm **More info** rồi **Run anyway**:
 fMess chưa được ký số cho Windows nên SmartScreen chưa nhận diện được.
 
+Nếu fMess báo không tìm thấy WebView2 Runtime, bạn cài lại từ [trang WebView2 của Microsoft](https://developer.microsoft.com/microsoft-edge/webview2) (bản Evergreen): Windows 10 và 11 có sẵn, nhưng vài bản Windows rút gọn đã gỡ mất.
+
 ## Phím tắt
 
 Trên Windows và Linux, thay ⌘ bằng Ctrl.

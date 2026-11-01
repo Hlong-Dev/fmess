@@ -65,6 +65,7 @@ Other ways to use Messenger on a desktop, checked on November 1, 2026 (each proj
 - Why not messenger.com? Meta shut it down in April 2026; chats now live inside facebook.com.
 - Is it safe to sign in? You sign in on Facebook's own page. fMess never sees your password and has no server.
 - Do encrypted chats work? Yes: chats, photos and voice messages everywhere, and calls on macOS.
+- Windows says it can't find the WebView2 Runtime? fMess uses WebView2, which Windows 10 and 11 include but some trimmed-down builds remove; install it from https://developer.microsoft.com/microsoft-edge/webview2 (Evergreen) and open fMess again.
 - macOS won't open it? System Settings → Privacy & Security → Open Anyway.
 
 ## Known limitations

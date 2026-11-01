@@ -66,6 +66,8 @@ The Mac app is signed and notarized by Apple, so it opens like any other app.
 If Windows says it protected your PC, click **More info**, then **Run anyway**:
 fMess isn't code-signed for Windows yet, so SmartScreen doesn't know it.
 
+If fMess says it can't find the WebView2 Runtime, install it from [Microsoft's WebView2 page](https://developer.microsoft.com/microsoft-edge/webview2) (Evergreen): Windows 10 and 11 include it, but some trimmed-down builds remove it.
+
 ## Keyboard shortcuts
 
 On Windows and Linux, use Ctrl instead of ⌘.

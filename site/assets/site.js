@@ -140,6 +140,8 @@ const TRANSLATIONS = {
     a2: "Meta đã chính thức khai tử Messenger.com từ tháng 4/2026, toàn bộ đoạn chat được chuyển về facebook.com.",
     q3: "Đăng nhập có an toàn?",
     a3: "Bạn đăng nhập trực tiếp trên trang của Facebook. fMess không lưu mật khẩu và không có máy chủ riêng.",
+    q5: "Windows báo không tìm thấy WebView2 Runtime?",
+    a5: "fMess dùng WebView2, thành phần của Windows để hiện trang web trong app. Windows 10 và 11 có sẵn, nhưng vài bản Windows rút gọn đã gỡ mất. Bạn cài lại từ <a href=\"https://developer.microsoft.com/microsoft-edge/webview2\">trang WebView2 của Microsoft</a> (bản Evergreen) rồi mở lại fMess.",
     q4: "Có hỗ trợ chat mã hoá đầu cuối?",
     a4: "Có. Hỗ trợ đầy đủ tin nhắn, cuộc gọi (macOS), ảnh và tin nhắn thoại.",
     footer_copy: "© 2026 fMess contributors · <a href=\"https://github.com/toanbku/fmess\">GitHub</a> · Giấy phép MIT",
