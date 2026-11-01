@@ -1028,19 +1028,25 @@
     { capture: true, passive: true },
   );
 
+  // Only messages' text and the fields can be selected, as in a native app.
   // A double or triple click selects a whole message and the break after it,
   // and WebKit then fills the space under its last line down to the edge of
-  // the bubble, or across the chat. WebKit fills only what can be selected,
-  // so nothing in the chat can be but text (Facebook marks every layer
-  // selectable, and wraps messages in more of them now and then: the rule
-  // used to cover [data-message-id] only, then rows gained a full-width
-  // role="article" around it).
+  // the bubble, or across the chat; it fills only what can be selected
+  // (Facebook marks every layer selectable, and wraps messages in more of
+  // them now and then: the rule used to cover [data-message-id] only, then
+  // rows gained a full-width role="article" around it). And Select All (⌘A)
+  // outside a field selected the whole page: the chat list, the tabs, the
+  // header, the details, all in bands.
   const selectStyle = document.createElement('style');
   selectStyle.textContent = `
-    html[${CHATS}] [role="log"],
-    html[${CHATS}] [role="log"] * { -webkit-user-select: none !important; user-select: none !important; }
+    html[${CHATS}] body,
+    html[${CHATS}] body * { -webkit-user-select: none !important; user-select: none !important; }
     html[${CHATS}] [role="log"] [dir="auto"],
-    html[${CHATS}] [role="log"] [dir="auto"] * { -webkit-user-select: text !important; user-select: text !important; }
+    html[${CHATS}] [role="log"] [dir="auto"] *,
+    html[${CHATS}] :is(input, textarea, [contenteditable="true"], [contenteditable="true"] *) {
+      -webkit-user-select: text !important;
+      user-select: text !important;
+    }
   `;
   withRoot((root) => root.append(selectStyle));
   if (titleBarInset) {
