@@ -12,6 +12,7 @@ fn main() {
                 "update_settings",
                 "show_account_menu",
                 "sync_messenger_prefs",
+                "set_pane_widths",
                 "set_messenger_pref",
                 "open_messenger_preferences",
                 "test_notification",

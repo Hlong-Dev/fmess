@@ -29,6 +29,18 @@ pub struct Settings {
     pub messenger_dark_mode: Option<String>,
     /// The chosen theme (see themes.rs); none shows Messenger as it is.
     pub theme: Option<String>,
+    /// Widths the panes were dragged to; none keeps Facebook's.
+    pub pane_widths: PaneWidths,
+}
+
+/// In CSS pixels. Set by the page (set_pane_widths), not the Settings window.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct PaneWidths {
+    /// The chat list.
+    pub list: Option<u32>,
+    /// The chat's details, beside the messages.
+    pub details: Option<u32>,
 }
 
 impl Default for Settings {
@@ -44,6 +56,7 @@ impl Default for Settings {
             block_typing: false,
             messenger_dark_mode: None,
             theme: None,
+            pane_widths: PaneWidths::default(),
         }
     }
 }
@@ -113,6 +126,7 @@ pub fn update_settings<R: Runtime>(
     let mut settings = settings;
     // Kept by the page, not edited in the Settings window.
     settings.messenger_dark_mode = previous.messenger_dark_mode.clone();
+    settings.pane_widths = previous.pane_widths.clone();
     *app.state::<SettingsState>().0.lock().unwrap() = settings.clone();
     save(&app, &settings)?;
 
@@ -155,6 +169,15 @@ pub fn sync_messenger_prefs<R: Runtime>(app: AppHandle<R>, prefs: MessengerPrefs
     settings.messenger_dark_mode = Some(prefs.dark_mode);
     *app.state::<SettingsState>().0.lock().unwrap() = settings.clone();
     save(&app, &settings)
+}
+
+/// Called by inject.js when a pane has been dragged to a new width.
+#[tauri::command]
+pub fn set_pane_widths<R: Runtime>(app: AppHandle<R>, widths: PaneWidths) -> Result<(), String> {
+    if current(&app).pane_widths == widths {
+        return Ok(());
+    }
+    change(&app, |settings| settings.pane_widths = widths)
 }
 
 /// The window theme for Messenger's dark mode setting; None follows the system.
@@ -224,6 +247,7 @@ pub fn page_settings<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> Str
         "macCalls": settings.mac_calls,
         "blockTyping": settings.block_typing,
         "theme": themes::for_page(app, settings.theme.as_deref()),
+        "paneWidths": settings.pane_widths,
     })
     .to_string()
 }
