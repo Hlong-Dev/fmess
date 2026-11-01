@@ -181,6 +181,25 @@ fn configure<'a, R: Runtime, M: Manager<R>>(
     }
 }
 
+/// WebKit draws overlay scroll bars (thin, shown only while scrolling, moved
+/// by its scrolling thread together with the content) only when AppKit
+/// prefers them, which follows System Settings and whether a mouse is
+/// connected; otherwise it draws classic always-on ones that take room from
+/// the page. fMess always wants overlay ones: inject.js otherwise hides the
+/// classic ones and draws an indicator of its own. A value in fMess's own
+/// defaults domain wins over the system-wide one, for fMess only.
+#[cfg(target_os = "macos")]
+pub fn prefer_overlay_scrollbars() {
+    use objc2::runtime::AnyObject;
+    use objc2_foundation::{NSString, NSUserDefaults};
+
+    let defaults = NSUserDefaults::standardUserDefaults();
+    let value = NSString::from_str("WhenScrolling");
+    let value: &AnyObject = &value;
+    // SAFETY: a string is a valid property-list value.
+    unsafe { defaults.setObject_forKey(Some(value), &NSString::from_str("AppleShowScrollBars")) };
+}
+
 /// inject.js, preceded by what it needs from fMess: the title bar inset, its
 /// settings, and the logo and colours of the loading screen.
 fn initialization_script<R: Runtime>(app: &AppHandle<R>) -> String {
@@ -193,8 +212,10 @@ fn initialization_script<R: Runtime>(app: &AppHandle<R>) -> String {
         None => "null",
     };
     let logo = base64::engine::general_purpose::STANDARD.encode(SPLASH_LOGO);
+    let debug = cfg!(debug_assertions);
     format!(
         "window.__fmessTitleBarInset = {TITLE_BAR_INSET};\n\
+         window.__fmessDebug = {debug};\n\
          window.__fmessSettings = {};\n\
          window.__fmessDark = {dark};\n\
          window.__fmessSplashLogo = 'data:image/png;base64,{logo}';\n\

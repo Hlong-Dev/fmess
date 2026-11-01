@@ -22,6 +22,9 @@ pub const MAIN_WINDOW: &str = "main";
 pub const AUTOSTART_ARG: &str = "--autostart";
 
 fn main() {
+    // Before any web view exists: WebKit asks AppKit once, when it starts.
+    #[cfg(target_os = "macos")]
+    webview::prefer_overlay_scrollbars();
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             show_main_window(app)

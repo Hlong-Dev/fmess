@@ -57,6 +57,7 @@ objc2-foundation = { version = "0.3.2", default-features = false, features = [
     "NSSet",
     "NSString",
     "NSURL",
+    "NSUserDefaults",
 ] }
 objc2-intents = { version = "0.3.2", default-features = false, features = [
     "std",

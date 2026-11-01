@@ -231,10 +231,6 @@ html[data-fmess-unread]::after {
 [role="main"] [role="log"] [role="article"] {
   padding-block: 3px !important;
 }
-[role="main"] [data-mw-file-dropzone],
-[role="main"] [data-mw-file-dropzone] [style*="background-image"]:has([role="log"]) {
-  background: var(--z-chat) !important;
-}
 
 /* Composer: a row of tools above a full-width message box, as in Zalo. */
 [role="main"] [role="region"]:has([role="textbox"]):not(:has([role="region"] [role="textbox"])) {
@@ -250,11 +246,15 @@ html[data-fmess-unread]::after {
   border-bottom: 1px solid var(--z-line) !important;
 }
 [role="main"] [role="region"]:has([role="textbox"]):not(:has([role="region"] [role="textbox"])) > div:has([role="textbox"]) {
+  /* What is inside this box keys on this (see --z-details below). */
+  --z-composer-box: 1;
   flex: 1 1 0 !important;
   padding: 10px 0 10px 8px !important;
 }
-[role="main"] [role="region"]:has([role="textbox"]):not(:has([role="region"] [role="textbox"])) > div:has([role="textbox"]) div {
-  border-radius: 0 !important;
+@container style(--z-composer-box: 1) {
+  div {
+    border-radius: 0 !important;
+  }
 }
 
 /* Composer: Zalo's tools, in Zalo's order, and both rows centred. */
@@ -321,11 +321,19 @@ img[alt="👍"] { content: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIG
 }
 
 /* Conversation details, as Zalo's "Thông tin hội thoại". */
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) {
+/* The pane is found here, by :has() on the pane itself, and marks itself with
+   --z-details; the rules for what is inside it test that mark
+   (@container style()). Written as "pane:has(...) h1", a :has() left of the
+   last element makes WebKit re-check every element on the page whenever an
+   element like the one in that :has() comes or goes anywhere. */
+[role="main"] div:has([role="log"]) > div:not(:has([role="log"])):has([aria-label="Search"]):has([role="list"]) {
+  --z-details: 1;
   border-left: 1px solid var(--z-line) !important;
   background: var(--z-layer) !important;
+  /* One line before the details: the pane's own, not fMess's too. */
+  box-shadow: none !important;
 }
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"]))::before {
+[role="main"] div:has([role="log"]) > div:not(:has([role="log"])):has([aria-label="Search"]):has([role="list"])::before {
   content: "Thông tin hội thoại";
   display: block;
   flex: none;
@@ -335,28 +343,48 @@ img[alt="👍"] { content: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIG
   color: var(--z-text);
   border-bottom: 1px solid var(--z-line);
 }
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) [style*="height: 80px"][style*="width: 80px"],
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) svg[style*="height: 80px"][style*="width: 80px"] {
-  width: 56px !important;
-  height: 56px !important;
-}
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) h1, [role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) h2, [role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) h3 {
-  font-size: 16px !important;
-}
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) div:has(> [role="list"]) {
-  border-top: 8px solid var(--z-subtle) !important;
-  padding-top: 0 !important;
-}
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) [role="list"] > div {
-  border-bottom: 8px solid var(--z-subtle) !important;
-}
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) [role="list"] [role="button"] span {
-  font-size: 15px !important;
-}
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) [role="list"] [role="listitem"] span,
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) [role="list"] a span {
-  font-size: 14px !important;
-  font-weight: 400 !important;
+@container style(--z-details: 1) {
+  [style*="height: 80px"][style*="width: 80px"],
+  svg[style*="height: 80px"][style*="width: 80px"] {
+    width: 56px !important;
+    height: 56px !important;
+  }
+  h1, h2, h3 {
+    font-size: 16px !important;
+  }
+  div:has(> [role="list"]) {
+    border-top: 8px solid var(--z-subtle) !important;
+    padding-top: 0 !important;
+  }
+  [role="list"] > div {
+    border-bottom: 8px solid var(--z-subtle) !important;
+  }
+  [role="list"] [role="button"] span {
+    font-size: 15px !important;
+  }
+  [role="list"] [role="listitem"] span,
+  [role="list"] a span {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+  }
+  [role="list"] > div > div > div {
+    padding-inline: 0 !important;
+  }
+  [role="list"] :is([role="button"], a) {
+    padding-inline: 8px !important;
+  }
+  [role="list"] :is([role="button"], a) > [role="none"] {
+    border-radius: 0 !important;
+  }
+  [role="list"] [role="button"][aria-expanded] span {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+  }
+  [role="list"] :is([role="button"], a) > div:first-child:not([role]) {
+    margin: 0 !important;
+    inset: 0 !important;
+    border-radius: 0 !important;
+  }
 }
 
 /* Header buttons: Zalo's outline icons; the details button turns blue while open. */
@@ -409,19 +437,6 @@ img[alt="👍"] { content: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIG
 }
 
 /* Details sections: full-width rows with square highlights, bold titles. */
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) [role="list"] > div > div > div {
-  padding-inline: 0 !important;
-}
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) [role="list"] :is([role="button"], a) {
-  padding-inline: 8px !important;
-}
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) [role="list"] :is([role="button"], a) > [role="none"] {
-  border-radius: 0 !important;
-}
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) [role="list"] [role="button"][aria-expanded] span {
-  font-size: 15px !important;
-  font-weight: 600 !important;
-}
 
 /* No title bar or badge over the photo viewer, which has a title bar of its own. */
 html[data-fmess-media]::before,
@@ -432,6 +447,8 @@ html[data-fmess-media]::after {
 /* Replying: tools, then the quoted message in a grey box with a blue bar, then the message box. */
 [aria-label="Thread composer"] > div:has(+ div [role="textbox"]) { order: 1; }
 [aria-label="Thread composer"] > div:not(:has([role="textbox"])):not(:has(+ div [role="textbox"])) {
+  /* What is inside the quote keys on this (see --z-details). */
+  --z-quote-box: 1;
   order: 2;
   flex: 0 0 calc(100% - 24px) !important;
   box-sizing: border-box !important;
@@ -442,17 +459,14 @@ html[data-fmess-media]::after {
   box-shadow: inset 2px 0 var(--z-blue) !important;
   border: 0 !important;
 }
-[aria-label="Thread composer"] > div:not(:has([role="textbox"])):not(:has(+ div [role="textbox"])) * {
-  font-size: 13px !important;
-  line-height: 18px !important;
+@container style(--z-quote-box: 1) {
+  * {
+    font-size: 13px !important;
+    line-height: 18px !important;
+  }
 }
 [aria-label="Thread composer"] > div:has([role="textbox"]) { order: 3; }
 [aria-label="Thread composer"] > span { order: 4; }
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) [role="list"] :is([role="button"], a) > div:first-child:not([role]) {
-  margin: 0 !important;
-  inset: 0 !important;
-  border-radius: 0 !important;
-}
 
 /* The same icons for dark mode, in Zalo's light grey. */
 html[data-fmess-dark] [role="navigation"]::before {
@@ -492,10 +506,6 @@ html[data-fmess-dark] [role="main"]:has([role="button"][aria-label="Search"]) [a
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36'%3E%3Cpath fill='%2366a6ff' d='M23.5 9.75Q24.247999999999998 9.75 24.875 10.124Q25.502 10.498000000000001 25.875999999999998 11.125000000000002Q26.25 11.752000000000002 26.25 12.5V23.5Q26.25 24.248 25.875999999999998 24.875Q25.502 25.502 24.875 25.875999999999998Q24.247999999999998 26.25 23.5 26.25H12.5Q11.751999999999999 26.25 11.125 25.875999999999998Q10.498 25.502 10.123999999999999 24.875Q9.75 24.248 9.75 23.5V12.5Q9.75 11.752000000000002 10.123999999999999 11.125000000000002Q10.498 10.498000000000001 11.125 10.124Q11.751999999999999 9.75 12.5 9.75ZM18.924 11.114H12.5Q11.972 11.114 11.576 11.477Q11.18 11.84 11.136 12.368000000000002V23.5Q11.136 24.028 11.488 24.424Q11.84 24.82 12.367999999999999 24.864H18.968Z'/%3E%3C/svg%3E") center / 36px 36px no-repeat, var(--z-selected) !important;
 }
 
-/* One line before the details: the pane's own, not fMess's too. */
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) {
-  box-shadow: none !important;
-}
 
 /* Tooltips: Facebook draws them dark, so their text stays light. */
 [role="tooltip"],

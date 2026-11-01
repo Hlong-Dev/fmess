@@ -342,14 +342,14 @@ html[data-fmess-dark] {
 }
 
 /* Header: flat, a soft shadow under it, WhatsApp's icons. */
-[role="main"] div:has([role="log"]) > div:has([aria-label="Conversation information"]):not(:has([role="log"])) {
+[role="main"] div:has([role="log"]) > div:not(:has([role="log"])):has([aria-label="Conversation information"]) {
   position: relative !important;
   z-index: 1 !important;
   background: var(--wa-panel) !important;
   box-shadow: 0 1px 4px var(--wa-shadow) !important;
   border-bottom: 0 !important;
 }
-[role="main"] div:has([role="log"]) > div:has([aria-label="Conversation information"]):not(:has([role="log"])) h3 span {
+[role="main"] div:has([role="log"]) > div:not(:has([role="log"])):has([aria-label="Conversation information"]) h3 span {
   font-size: 16px !important;
   font-weight: 400 !important;
   color: var(--wa-text) !important;
@@ -456,11 +456,11 @@ html[data-fmess-dark] {
 }
 
 /* Details: WhatsApp's "Contact info". */
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) {
+[role="main"] div:has([role="log"]) > div:not(:has([role="log"])):has([aria-label="Search"]):has([role="list"]) {
   background: var(--wa-panel) !important;
   box-shadow: none !important;
 }
-[role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"]))::before {
+[role="main"] div:has([role="log"]) > div:not(:has([role="log"])):has([aria-label="Search"]):has([role="list"])::before {
   content: "Contact info";
   display: block;
   flex: none;
