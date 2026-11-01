@@ -59,9 +59,7 @@ Tải bản phù hợp với máy bạn ở
 | Windows 10 và 11 | [fMess-windows-setup.exe](https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-setup.exe) |
 | Linux | [AppImage](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.AppImage) · [.deb](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.deb) · [.rpm](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.rpm) |
 
-Ứng dụng cho Mac chưa được Apple notarize. Nếu macOS không cho mở, vào **System Settings →
-Privacy & Security** rồi bấm **Open Anyway**, hoặc chạy
-`xattr -dr com.apple.quarantine /Applications/fMess.app` trong Terminal.
+Ứng dụng cho Mac đã được ký và Apple notarize, nên mở như mọi app bình thường.
 
 Nếu Windows báo "Windows protected your PC", bấm **More info** rồi **Run anyway**:
 fMess chưa được ký số cho Windows nên SmartScreen chưa nhận diện được.
