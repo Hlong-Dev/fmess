@@ -470,14 +470,21 @@ html[data-fmess-dark] {
   color: var(--wa-text);
 }
 
-/* Tooltips: Facebook draws them dark, so their text stays light. */
-[role="tooltip"],
+/* Tooltips: Facebook draws them in the other mode than the page, dark on a
+   light page and light on a dark one; their text follows their background. */
 [role="tooltip"] .__fb-dark-mode,
-[role="tooltip"] .__fb-light-mode {
+[role="tooltip"].__fb-dark-mode {
   --primary-text: #f5f6f7 !important;
   --secondary-text: #b0b3b8 !important;
   --primary-icon: #f5f6f7 !important;
   --secondary-icon: #b0b3b8 !important;
+}
+[role="tooltip"] .__fb-light-mode,
+[role="tooltip"].__fb-light-mode {
+  --primary-text: #050505 !important;
+  --secondary-text: #65676b !important;
+  --primary-icon: #050505 !important;
+  --secondary-icon: #65676b !important;
 }
 
 /* Facebook's dark islands on a light page (toasts such as "All chats
