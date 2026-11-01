@@ -59,6 +59,8 @@ Download the build for your system from the
 | Windows 10 and 11 | [fMess-windows-setup.exe](https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-setup.exe) |
 | Linux | [AppImage](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.AppImage) · [.deb](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.deb) · [.rpm](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.rpm) |
 
+On a Mac you can also use Homebrew: `brew install --cask toanbku/tap/fmess`.
+
 The Mac app is signed and notarized by Apple, so it opens like any other app.
 
 If Windows says it protected your PC, click **More info**, then **Run anyway**:

@@ -59,6 +59,8 @@ Tải bản phù hợp với máy bạn ở
 | Windows 10 và 11 | [fMess-windows-setup.exe](https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-setup.exe) |
 | Linux | [AppImage](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.AppImage) · [.deb](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.deb) · [.rpm](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.rpm) |
 
+Trên Mac cũng cài được bằng Homebrew: `brew install --cask toanbku/tap/fmess`.
+
 Ứng dụng cho Mac đã được ký và Apple notarize, nên mở như mọi app bình thường.
 
 Nếu Windows báo "Windows protected your PC", bấm **More info** rồi **Run anyway**:

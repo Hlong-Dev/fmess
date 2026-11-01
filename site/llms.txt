@@ -15,6 +15,7 @@ Key facts:
 
 - [All releases and release notes](https://github.com/toanbku/fmess/releases/latest): every build for the latest version.
 - [macOS, Apple silicon (M1 and later)](https://github.com/toanbku/fmess/releases/latest/download/fMess-mac-apple-silicon.dmg): disk image, signed and notarized.
+- macOS with Homebrew: `brew install --cask toanbku/tap/fmess`
 - [macOS, Intel](https://github.com/toanbku/fmess/releases/latest/download/fMess-mac-intel.dmg): disk image, signed and notarized.
 - [Windows 10 and 11](https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-setup.exe): installer. Not code-signed yet, so SmartScreen may warn: click "More info", then "Run anyway".
 - [Linux AppImage](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.AppImage), [.deb](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.deb), [.rpm](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.rpm)

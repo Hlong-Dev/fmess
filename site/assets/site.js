@@ -95,6 +95,7 @@ const TRANSLATIONS = {
     linux_text: "Ubuntu, Debian và hầu hết các bản khác",
     mac_silicon: "Apple silicon",
     mac_intel: "Intel",
+    mac_brew: "Hoặc dùng Homebrew: <code>brew install --cask toanbku/tap/fmess</code>",
     mac_which: "Không chắc? Menu Apple → About This Mac: dòng “Chip Apple M…” là Apple silicon.",
     intel_link: "Mac dùng chip Intel? Tải bản này.",
     all_files: "Tất cả file và ghi chú phát hành",
