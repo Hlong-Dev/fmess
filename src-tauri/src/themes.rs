@@ -18,6 +18,7 @@
 
 use std::{fs, path::PathBuf};
 
+use cssparser::{ParseError, ParseErrorKind, Parser, ParserInput, Token};
 use serde::Serialize;
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_dialog::DialogExt;
@@ -144,55 +145,52 @@ fn check(css: &str) -> Result<(), String> {
     if css.len() > MAX_SIZE {
         return Err("A theme can be at most 2 MB.".into());
     }
-    // As the browser reads it: `\75rl(` is url( and `@\69mport` is @import.
-    let lower = unescape(css).to_ascii_lowercase();
-    if lower.contains("@import") {
-        return Err("A theme can't load other files (@import).".into());
-    }
-    if ["expression(", "javascript:", "image-set(", "src(", "</style"].iter().any(|bad| lower.contains(bad)) {
-        return Err("This file isn't a theme fMess can use.".into());
-    }
-    let mut rest = lower.as_str();
-    while let Some(at) = rest.find("url(") {
-        rest = &rest[at + 4..];
-        if !rest.trim_start().trim_start_matches(['"', '\'']).starts_with("data:") {
-            return Err("A theme can only use pictures inside the file (data: URLs), not links.".into());
+    // The CSS is read the way the browser reads it, escapes, comments and
+    // line breaks included: looking for "url(" in the text missed `\\75rl(`.
+    let mut input = ParserInput::new(css);
+    walk(&mut Parser::new(&mut input)).map_err(|err| match err.kind {
+        ParseErrorKind::Custom(message) => message.to_string(),
+        ParseErrorKind::Basic(_) => "This file isn't a theme fMess can use.".to_string(),
+    })
+}
+
+const LINK: &str = "A theme can only use pictures inside the file (data: URLs), not links.";
+const IMPORT: &str = "A theme can't load other files (@import).";
+const NOT_A_THEME: &str = "This file isn't a theme fMess can use.";
+/// Functions that load something or run script, besides url() and src().
+const LOADING: [&str; 6] = ["image-set", "-webkit-image-set", "image", "cross-fade", "element", "expression"];
+
+/// Every token of the CSS, inside blocks and functions too.
+fn walk<'i>(parser: &mut Parser<'i, '_>) -> Result<(), ParseError<'i, &'static str>> {
+    while let Ok(token) = parser.next_including_whitespace_and_comments() {
+        match token.clone() {
+            Token::UnquotedUrl(url) if !is_data(&url) => return Err(parser.new_custom_error(LINK)),
+            Token::BadUrl(_) => return Err(parser.new_custom_error(LINK)),
+            Token::AtKeyword(name) if name.eq_ignore_ascii_case("import") => return Err(parser.new_custom_error(IMPORT)),
+            Token::Function(name) if name.eq_ignore_ascii_case("url") || name.eq_ignore_ascii_case("src") => {
+                // url("data:...") is a function with a string in it.
+                parser.parse_nested_block(|args| match args.expect_string().cloned() {
+                    Ok(url) if is_data(&url) => {
+                        while args.next().is_ok() {}
+                        Ok(())
+                    }
+                    _ => Err(args.new_custom_error(LINK)),
+                })?;
+            }
+            Token::Function(name) if LOADING.iter().any(|loading| name.eq_ignore_ascii_case(loading)) => {
+                return Err(parser.new_custom_error(NOT_A_THEME));
+            }
+            Token::Function(_) | Token::ParenthesisBlock | Token::SquareBracketBlock | Token::CurlyBracketBlock => {
+                parser.parse_nested_block(walk)?;
+            }
+            _ => {}
         }
     }
     Ok(())
 }
 
-/// CSS with its escapes turned into the characters they stand for: a
-/// backslash with up to six hex digits (and one space after them) is that
-/// code point, a backslash before anything else is that character.
-fn unescape(css: &str) -> String {
-    let mut out = String::with_capacity(css.len());
-    let mut chars = css.chars().peekable();
-    while let Some(c) = chars.next() {
-        if c != '\\' {
-            out.push(c);
-            continue;
-        }
-        let mut hex = String::new();
-        while hex.len() < 6 && chars.peek().is_some_and(char::is_ascii_hexdigit) {
-            hex.extend(chars.next());
-        }
-        if hex.is_empty() {
-            // Before a line break the backslash joins the lines.
-            match chars.next() {
-                Some('\n') => {}
-                Some(other) => out.push(other),
-                None => out.push('\u{FFFD}'),
-            }
-            continue;
-        }
-        if chars.peek().is_some_and(|c| c.is_ascii_whitespace()) {
-            chars.next();
-        }
-        let code = u32::from_str_radix(&hex, 16).ok().filter(|&code| code != 0);
-        out.push(code.and_then(char::from_u32).unwrap_or('\u{FFFD}'));
-    }
-    out
+fn is_data(url: &str) -> bool {
+    url.trim_start().get(..5).is_some_and(|scheme| scheme.eq_ignore_ascii_case("data:"))
 }
 
 /// A value from the theme's opening comment ("name: Zalo").
@@ -269,18 +267,19 @@ mod tests {
         assert!(check("@\\69mport 'x.css';").is_err());
         assert!(check("@\\000069mport 'x.css';").is_err());
         assert!(check("a { background: src('x.png') }").is_err());
+        // Line breaks after an escape count as one, CRLF included.
+        assert!(check("a { background: \\75\r\nrl(https://example.com/x.png) }").is_err());
+        assert!(check("@\\69\r\nmport 'x.css';").is_err());
+        assert!(check("a { background: \\75\x0crl(https://example.com/x.png) }").is_err());
+        // Inside blocks and other functions too, and quoted.
+        assert!(check("@media screen { a { b: var(--x, url('https://example.com/x.png')) } }").is_err());
+        assert!(check("a { background: url('https://example.com/x.png') }").is_err());
+        assert!(check("a { background: -webkit-image-set(\"x.png\" 1x) }").is_err());
+        // Pictures inside the file, however they are written.
+        assert!(check("a { background: URL( 'DATA:image/png;base64,x' ) }").is_ok());
+        assert!(check("a { background: \\75rl(data:image/png;base64,x) }").is_ok());
         // An escape that isn't one of those is fine.
         assert!(check("a::before { content: \"\\201C\" }").is_ok());
-    }
-
-    #[test]
-    fn unescapes_like_css() {
-        assert_eq!(unescape("\\75rl("), "url(");
-        assert_eq!(unescape("\\000075 rl("), "url(");
-        assert_eq!(unescape("u\\rl("), "url(");
-        assert_eq!(unescape("a\\\nb"), "ab");
-        assert_eq!(unescape("\\0"), "\u{FFFD}");
-        assert_eq!(unescape("plain"), "plain");
     }
 
     #[test]

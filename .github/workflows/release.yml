@@ -37,10 +37,12 @@ jobs:
           # A re-run uses the draft that is already there.
           draft_id() { gh api "repos/$REPO/releases" --jq ".[] | select(.tag_name == \"$TAG\" and .draft) | .id" | head -1; }
           id=$(draft_id)
+          # The new draft's id comes back from creating it: listing the
+          # releases right after can miss it (v0.1.13's check had no id).
           if [ -z "$id" ]; then
-            gh release create "$TAG" --repo "$REPO" --draft --verify-tag --title "fMess $TAG" --notes "See the assets below to download fMess for your system."
-            id=$(draft_id)
+            id=$(gh api "repos/$REPO/releases" -f tag_name="$TAG" -f name="fMess $TAG" -f body="See the assets below to download fMess for your system." -F draft=true --jq .id)
           fi
+          [ -n "$id" ] || { echo "No draft release for $TAG"; exit 1; }
           echo "id=$id" >> "$GITHUB_OUTPUT"
 
   build:

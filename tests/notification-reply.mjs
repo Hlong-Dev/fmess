@@ -47,8 +47,10 @@ function world() {
     KeyboardEvent: class { constructor(type, init) { Object.assign(this, init); } },
     window: {},
   };
-  const run = new Function(...Object.keys(env), `${waitFor}${reply}return window.__fmessReply;`);
-  w.reply = run(...Object.values(env));
+  const run = new Function(...Object.keys(env), `${waitFor}${reply}return window;`);
+  const page = run(...Object.values(env));
+  w.reply = page.__fmessReply;
+  w.returnDraft = page.__fmessReturnDraft;
   return w;
 }
 
@@ -96,6 +98,23 @@ const check = (name, ok, detail) => results.push(`${ok ? 'PASS' : 'FAIL'} ${name
   const ok = await done;
   await sleep(200);
   check('another chat opened while the draft goes out: nothing sent, draft kept in the notice', !ok && w.sent.length === 0 && w.boxes.B.textContent === '' && /my draft/.test(w.notices[0] ?? ''), { ok, sent: w.sent, B: w.boxes.B.textContent, notices: w.notices });
+}
+{
+  // Codex's second case: the reply goes out, then another chat opens before
+  // the draft is back in the first one.
+  const w = world();
+  w.open('A');
+  w.boxes.A.textContent = 'my draft';
+  w.open('X');
+  const done = w.reply(1, 'A', 'quick');
+  while (!w.sent.length) await sleep(5);
+  w.open('B');
+  const ok = await done;
+  const kept = w.notices.some((notice) => /my draft/.test(notice));
+  w.open('A');
+  await w.returnDraft();
+  await sleep(200);
+  check('another chat opened right after sending: the draft comes back to its chat', ok && w.sent.length === 1 && w.sent[0][0] === 'A' && w.boxes.B.textContent === '' && kept && w.boxes.A.textContent === 'my draft', { ok, sent: w.sent, A: w.boxes.A.textContent, B: w.boxes.B.textContent, notices: w.notices });
 }
 console.log(results.join('\n'));
 if (results.some((line) => line.startsWith('FAIL'))) process.exit(1);

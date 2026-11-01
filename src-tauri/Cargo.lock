@@ -1058,6 +1058,7 @@ version = "0.1.13"
 dependencies = [
  "base64 0.21.7",
  "block2",
+ "cssparser",
  "objc2",
  "objc2-app-kit",
  "objc2-foundation",

@@ -600,6 +600,7 @@
         focusComposer();
         // Defined further down, after this first runs.
         setTimeout(() => clearOpenChatNotifications());
+        setTimeout(() => window.__fmessReturnDraft?.());
       }
     }
   };
@@ -1908,6 +1909,22 @@
     replying = reply.catch(() => {});
     return reply;
   };
+  // A draft a reply took out of its chat and couldn't put back, because
+  // another chat was opened meanwhile, goes back the next time the chat is
+  // open (if nothing has been typed there since).
+  const strayDrafts = new Map();
+  const returnStrayDraft = async () => {
+    const openThread = () => location.pathname.match(/^\/messages\/(?:e2ee\/)?t\/([^/]+)/)?.[1];
+    const thread = openThread();
+    const draft = thread && strayDrafts.get(thread);
+    if (!draft) return;
+    const box = await waitFor(() => openThread() === thread && composer(), 5000);
+    if (!box || openThread() !== thread || box.textContent.trim()) return;
+    strayDrafts.delete(thread);
+    box.focus();
+    document.execCommand('insertText', false, draft);
+  };
+  window.__fmessReturnDraft = returnStrayDraft;
   const replyNow = async (id, thread, text) => {
     const inChat = () => new RegExp(`^/messages/(?:e2ee/)?t/${thread}/?$`).test(location.pathname);
     const before = location.pathname;
@@ -1955,11 +1972,16 @@
         draftOut = false;
       }
     }
+    if (draftOut) strayDrafts.set(thread, draft);
     if (!sent) {
-      // Say so, and keep the reply (and a draft that couldn't go back): clicking opens the chat.
+      // Say so, and keep the reply: clicking opens the chat.
       const notice = new FMessNotification('Reply not sent', { body: draftOut ? `${text}\n\nYour draft: ${draft}` : text });
       notice.onclick = () => openChat(id, thread);
       return false;
+    }
+    if (draftOut) {
+      const notice = new FMessNotification('Your draft is kept', { body: draft });
+      notice.onclick = () => openChat(id, thread);
     }
     // Back to the chat that was open, unless another one has been opened since.
     if (location.pathname !== before && inChat() && /^\/messages\/(e2ee\/)?t\//.test(before)) history.back();
