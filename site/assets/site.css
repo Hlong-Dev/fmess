@@ -181,9 +181,10 @@ kbd { font: 600 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
 .compare .us { color: var(--text); font-weight: 600; background: var(--card); }
 .compare thead .us { border-radius: 14px 14px 0 0; }
 .compare tbody tr:last-child .us { border-radius: 0 0 14px 14px; }
-.compare-why { margin: 28px 0 0; padding: 18px 22px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--line); color: var(--muted); max-width: 52em; }
+/* As wide as the table above them. */
+.compare-why { margin: 28px 0 0; padding: 20px 24px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--line); color: var(--muted); font-size: 17px; }
 .compare-why b { color: var(--text); }
-.compare-also { margin: 20px 0 0; color: var(--muted); max-width: 52em; }
+.compare-also { margin: 20px 0 0; color: var(--muted); font-size: 17px; }
 .compare-also b { color: var(--text); }
 .compare-note { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
 
