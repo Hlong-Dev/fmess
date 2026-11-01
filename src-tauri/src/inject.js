@@ -1991,8 +1991,11 @@
     }
     return colours ? `.__fb-dark-mode { ${colours} color-scheme: light; }\n` : '';
   };
+  // Not in call windows (popups): their screens are Facebook's dark ones, and
+  // a theme's colours, made for the chats, left dark text on black there and
+  // white on white.
   const applyTheme = (next) => {
-    theme = next?.css ? next : null;
+    theme = next?.css && !window.opener ? next : null;
     withRoot((root) => {
       let style = document.getElementById(THEME);
       if (!theme) return style?.remove();
