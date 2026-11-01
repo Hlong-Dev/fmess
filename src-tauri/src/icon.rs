@@ -1,28 +1,26 @@
-//! fMess's icon follows the theme: the ring and f of its own icon on the
-//! theme's colour (branding/icon.py --themes). Only while fMess runs, in the
-//! Dock (macOS), on its windows and taskbar button (Windows, Linux) and in the
-//! tray; Finder, Start and the app launchers keep the icon it was installed with.
+//! With the Zalo or WhatsApp theme, fMess's icon becomes that app's logo with
+//! fMess's own as a badge (branding/icon.py --themes); otherwise it is fMess's.
+//! Only while fMess runs, in the Dock (macOS), on its windows and taskbar
+//! button (Windows, Linux) and in the tray; Finder, Start and the app
+//! launchers keep the icon it was installed with.
 
 use tauri::{image::Image, AppHandle, Runtime, WebviewWindow};
 
 use crate::settings;
 
-/// A theme's icon at 256 (windows, tray) and 512 (Dock). Themes the user adds,
-/// and none, get Messenger's.
-fn icon(theme: Option<&str>) -> (&'static [u8], &'static [u8]) {
+/// The icon at 256 (windows, tray) and 512 (Dock; none is the installed one).
+/// Themes the user adds, and Messenger's own look, get fMess's.
+fn icon(theme: Option<&str>) -> (&'static [u8], Option<&'static [u8]>) {
     match theme {
         Some("zalo") => (
             include_bytes!("../icons/themes/zalo-256.png"),
-            include_bytes!("../icons/themes/zalo-512.png"),
+            Some(include_bytes!("../icons/themes/zalo-512.png")),
         ),
         Some("whatsapp") => (
             include_bytes!("../icons/themes/whatsapp-256.png"),
-            include_bytes!("../icons/themes/whatsapp-512.png"),
+            Some(include_bytes!("../icons/themes/whatsapp-512.png")),
         ),
-        _ => (
-            include_bytes!("../icons/themes/messenger-256.png"),
-            include_bytes!("../icons/themes/messenger-512.png"),
-        ),
+        _ => (include_bytes!("../icons/128x128@2x.png"), None),
     }
 }
 
@@ -57,7 +55,7 @@ pub fn apply_to<R: Runtime>(_window: &WebviewWindow<R>) {
 }
 
 #[cfg(target_os = "macos")]
-fn set_dock_icon(png: &'static [u8]) {
+fn set_dock_icon(png: Option<&'static [u8]>) {
     use objc2::{AllocAnyThread, MainThreadMarker};
     use objc2_app_kit::{NSApplication, NSImage};
     use objc2_foundation::NSData;
@@ -65,11 +63,9 @@ fn set_dock_icon(png: &'static [u8]) {
     let Some(mtm) = MainThreadMarker::new() else {
         return;
     };
-    let Some(image) = NSImage::initWithData(NSImage::alloc(), &NSData::with_bytes(png)) else {
-        return;
-    };
+    let image = png.and_then(|png| NSImage::initWithData(NSImage::alloc(), &NSData::with_bytes(png)));
     #[cfg(debug_assertions)]
-    eprintln!("[fmess] dock icon: {} bytes, {:?}", png.len(), image.size());
+    eprintln!("[fmess] dock icon: {:?}", image.as_ref().map(|image| image.size()));
     // The Dock still draws the unread badge over it.
-    unsafe { NSApplication::sharedApplication(mtm).setApplicationIconImage(Some(&image)) };
+    unsafe { NSApplication::sharedApplication(mtm).setApplicationIconImage(image.as_deref()) };
 }

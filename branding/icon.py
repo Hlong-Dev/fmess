@@ -15,12 +15,13 @@ and run `npx tauri icon app-icon.png` for the Windows and Linux icons, then
 replace icon.icns (iconutil -c icns on an .iconset of the per-size PNGs) and
 32x32, 64x64, 128x128 and 128x128@2x.png with the per-size renders.
 
-    python3 branding/icon.py --themes OUT_DIR   # messenger-256.svg ... whatsapp-512.svg
+    python3 branding/icon.py --themes OUT_DIR   # zalo-256.svg ... whatsapp-512.svg
 
-The icons the app shows while it runs, one per theme (see icon.rs): the same
-white ring and f on the theme's colour, at 512 for the Dock and 256 for the
-window and tray. Render them as above into src-tauri/icons/themes/."""
-import math, pathlib, sys
+The icons the app shows while it runs with the Zalo or WhatsApp theme (see
+icon.rs): that app's own logo (brands/, both public domain on Wikimedia
+Commons) with fMess's icon as a badge in the corner, at 512 for the Dock and
+256 for the window and tray. Render them as above into src-tauri/icons/themes/."""
+import math, pathlib, re, sys
 
 def superellipse(cx, cy, w, h, n, steps=720):
     pts = []
@@ -46,17 +47,11 @@ F_BAR = "M-89,10 H51"
 INK = [("0", "#FF5FAE"), ("0.5", "#A65BFF"), ("1", "#4C9CFF")]
 INK_FROM, INK_TO = (250, 240), (780, 800)
 
-THEME_BG = {
-    "messenger": None,
-    "zalo": [("0", "#3A92FF"), ("1", "#0062F0")],
-    "whatsapp": [("0", "#3FDC7E"), ("1", "#17A852")],
-}
-
 def gradient(id_, a, b):
     stops = "".join(f'<stop offset="{o}" stop-color="{c}"/>' for o, c in INK)
     return f'<linearGradient id="{id_}" gradientUnits="userSpaceOnUse" x1="{a[0]:.1f}" y1="{a[1]:.1f}" x2="{b[0]:.1f}" y2="{b[1]:.1f}">{stops}</linearGradient>'
 
-def svg(size, style, tint=0.18, theme=None):
+def svg(size, style, tint=0.18):
     small = size <= 32
     large = size >= 256
     ring = 70 if small else 62
@@ -68,12 +63,6 @@ def svg(size, style, tint=0.18, theme=None):
     local = lambda p: ((p[0] - CX) / scale, (p[1] - fy) / scale)
     ring_fill = {"groove": "#34343C", "mono": "url(#ink)", "white": "url(#white)", "inverse": "url(#ink)"}[style]
     f_stroke = {"groove": "#FFFFFF", "mono": "url(#inklocal)", "white": "url(#inklocal)", "inverse": "#FFFFFF"}[style]
-    bg = '<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B2B31"/><stop offset="1" stop-color="#141417"/></linearGradient>'
-    if theme:
-        # A theme's colour, with the ring and the f in white.
-        stops = THEME_BG[theme]
-        bg = gradient("bg", INK_FROM, INK_TO) if stops is None else '<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">' + "".join(f'<stop offset="{o}" stop-color="{c}"/>' for o, c in stops) + "</linearGradient>"
-        style, ring_fill, f_stroke = "white", "#FFFFFF", "#FFFFFF"
     edge = "" if small else 'filter="url(#edge)"'
     if style == "groove":
         # Small icons can't show the shading, so their groove is a little lighter.
@@ -83,7 +72,7 @@ def svg(size, style, tint=0.18, theme=None):
         ring_tint, ring_filter = "", edge
     return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 1024 1024">
 <defs>
-  {bg}
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B2B31"/><stop offset="1" stop-color="#141417"/></linearGradient>
   <radialGradient id="toplight" cx="0.5" cy="-0.1" r="0.8"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.09"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>
   <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#9B5CFF" stop-opacity="0.22"/><stop offset="1" stop-color="#9B5CFF" stop-opacity="0"/></radialGradient>
   <linearGradient id="rim" gradientUnits="userSpaceOnUse" x1="0" y1="100" x2="0" y2="924"><stop offset="0" stop-color="#fff" stop-opacity="0.26"/><stop offset="0.3" stop-color="#fff" stop-opacity="0.05"/><stop offset="1" stop-color="#fff" stop-opacity="0.10"/></linearGradient>
@@ -117,7 +106,7 @@ def svg(size, style, tint=0.18, theme=None):
 <g filter="url(#iconshadow)"><path d="{SQUIRCLE}" fill="url(#bg)"/></g>
 <g clip-path="url(#body)">
   <rect width="1024" height="1024" fill="url(#toplight)"/>
-  {'' if small or theme else f'<ellipse cx="{CX}" cy="{CY}" rx="300" ry="230" fill="url(#glow)"/>'}
+  {'' if small else f'<ellipse cx="{CX}" cy="{CY}" rx="300" ry="230" fill="url(#glow)"/>'}
   <path d="{SQUIRCLE}" fill="none" stroke="url(#rim)" stroke-width="{6 if large else 10}"/>
 </g>
 <g {ring_filter}><rect width="1024" height="1024" fill="{ring_fill}" mask="url(#bubble)"/>{ring_tint}</g>
@@ -126,12 +115,44 @@ def svg(size, style, tint=0.18, theme=None):
 </g></g>
 </svg>'''
 
+BRANDS = pathlib.Path(__file__).parent / "brands"
+
+def inner(svg_text):
+    """What is inside an SVG's outer <svg> element."""
+    return svg_text[svg_text.index(">", svg_text.index("<svg")) + 1:svg_text.rindex("</svg>")]
+
+def brand(name):
+    """The brand's logo, drawn in the icon's 1024 square like fMess's own."""
+    logo = (BRANDS / f"{name}.svg").read_text()
+    if name == "zalo":
+        # Zalo's logo is its whole app icon, a rounded square (50 units).
+        return f'<g filter="url(#logoshadow)"><g transform="translate(100,100) scale({824 / 50})">{inner(logo)}</g></g>'
+    # WhatsApp's is the bubble alone: on a green square, as its app shows it,
+    # without the logo's grey shadow (filter a) or the path drawn under the
+    # same one again (its gradient isn't in the file).
+    paths = [p for p in re.findall(r"<path[^>]*/>", logo) if 'filter="url(#a)"' not in p and "linearGradient1780" not in p]
+    defs = re.search(r"<defs>.*?</defs>", logo).group(0)
+    return f'''<g filter="url(#logoshadow)"><path d="{SQUIRCLE}" fill="url(#wa)"/></g>
+{defs}<g transform="translate({512 - 87.2 * 3.6:.1f},{512 - 87.2 * 3.6:.1f}) scale(3.6)">{"".join(paths)}</g>'''
+
+def themed(size, name):
+    """A brand's logo with fMess's icon as a badge on its bottom right corner."""
+    badge = inner(svg(64, "groove"))
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 1024 1024">
+<defs>
+  <filter id="logoshadow" filterUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity="0.35"/></filter>
+  <linearGradient id="wa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5FE07A"/><stop offset="1" stop-color="#1FAF4B"/></linearGradient>
+</defs>
+{brand(name)}
+<g transform="translate(600,600) scale(0.41)">{badge}</g>
+</svg>'''
+
 if __name__ == "__main__":
     if sys.argv[1] == "--themes":
         out = pathlib.Path(sys.argv[2])
-        for theme in THEME_BG:
+        for name in ("zalo", "whatsapp"):
             for size in (256, 512):
-                (out / f"{theme}-{size}.svg").write_text(svg(size, "white", theme=theme))
+                (out / f"{name}-{size}.svg").write_text(themed(size, name))
         sys.exit()
     out = pathlib.Path(sys.argv[1])
     style = sys.argv[2] if len(sys.argv) > 2 else "groove"
