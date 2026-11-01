@@ -516,3 +516,12 @@ html[data-fmess-dark] [role="main"]:has([role="button"][aria-label="Search"]) [a
   --primary-icon: #f5f6f7 !important;
   --secondary-icon: #b0b3b8 !important;
 }
+
+/* Facebook's dark islands on a light page (toasts such as "All chats
+   loaded.", tooltips, the photo viewer) keep their light text. */
+html:not([data-fmess-dark]) .__fb-dark-mode {
+  --primary-text: #e4e6eb !important;
+  --secondary-text: #b0b3b8 !important;
+  --primary-icon: #e4e6eb !important;
+  --secondary-icon: #b0b3b8 !important;
+}
