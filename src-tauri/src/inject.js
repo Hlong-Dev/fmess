@@ -712,6 +712,13 @@
       --messenger-card-box-shadow: none !important;
     }
     html[${CHATS}] [role="main"] { box-shadow: -1px 0 0 var(--divider, var(--card-border-color)); }
+    /* The bar above the message box (replying, a link's preview) has fixed
+       heights made for Facebook's type; a theme's larger type overflowed
+       them, its second line on the line below. */
+    html[${CHATS}] [data-fmess-ui="composer-bar"],
+    html[${CHATS}] [data-fmess-ui="composer-bar"] > div,
+    html[${CHATS}] [data-fmess-ui="composer-bar"] > div > div { height: auto !important; }
+    html[${CHATS}] [data-fmess-ui="composer-bar"] > div { padding-bottom: 8px !important; }
     /* The same divider before the chat's details (the pane beside the
        messages, with the Search button). */
     html[${CHATS}] [role="main"] [data-fmess-ui="details"] {
@@ -966,6 +973,8 @@
   };
   const markComposer = (composer) => {
     mark(composer, 'composer');
+    // The bar above the box while replying, or with a link's preview.
+    mark(composer.previousElementSibling, 'composer-bar');
     const field = [...composer.children].find((child) => child.querySelector('[role="textbox"]'));
     for (const button of composer.querySelectorAll('[role="button"]')) {
       const path = button.querySelector('svg path')?.getAttribute('d') ?? '';
