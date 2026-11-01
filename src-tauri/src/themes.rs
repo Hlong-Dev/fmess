@@ -1,5 +1,5 @@
 //! Themes change how Messenger looks: CSS that inject.js adds to the page,
-//! picked in Settings. Lục, Zalo and WhatsApp come with fMess; other themes are .css files the
+//! picked in Settings. Zalo and WhatsApp come with fMess; other themes are .css files the
 //! user adds, kept in the app data folder. A theme is CSS and nothing more: no
 //! @import and no url() other than data: ones, so it can't load anything.
 //!
@@ -25,7 +25,6 @@ use tauri_plugin_dialog::DialogExt;
 use crate::settings;
 
 const BUILT_IN: &[(&str, &str)] = &[
-    ("luc", include_str!("../themes/luc.css")),
     ("zalo", include_str!("../themes/zalo.css")),
     ("whatsapp", include_str!("../themes/whatsapp.css")),
 ];

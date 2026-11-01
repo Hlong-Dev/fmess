@@ -387,12 +387,14 @@
     matchMedia('(prefers-color-scheme: dark)').matches
       ? ['#242526', '#242526', '#18191a', '#0866ff', '#303030']
       : ['#ffffff', '#ffffff', '#ffffff', '#0866ff', '#f0f0f0'];
+  // A theme that is gone (Lục, once built in) shows as Messenger.
+  const chosenTheme = () => (themes.some((theme) => theme.id === current?.theme) ? current.theme : '');
   const themeCard = ({ id, name, preview }) => {
     const card = document.createElement('button');
     card.type = 'button';
     card.className = 'theme-card';
     card.setAttribute('role', 'radio');
-    card.setAttribute('aria-checked', String(id === (current?.theme ?? '')));
+    card.setAttribute('aria-checked', String(id === chosenTheme()));
     const mini = document.createElement('span');
     mini.className = 'mini';
     const [rail, list, chat, out, theirs] = preview ?? ['#888', '#aaa', '#ccc', '#999', '#eee'];
