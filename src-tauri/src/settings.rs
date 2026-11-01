@@ -1,4 +1,8 @@
-use std::{fs, path::PathBuf, sync::Mutex};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::Mutex,
+};
 
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, Runtime, Theme};
@@ -123,12 +127,12 @@ pub fn update_settings<R: Runtime>(
         result.map_err(|err| format!("could not change Open at Login: {err}"))?;
     }
 
-    let mut settings = settings;
-    // Kept by the page, not edited in the Settings window.
-    settings.messenger_dark_mode = previous.messenger_dark_mode.clone();
-    settings.pane_widths = previous.pane_widths.clone();
-    *app.state::<SettingsState>().0.lock().unwrap() = settings.clone();
-    save(&app, &settings)?;
+    let settings = change(&app, |current| {
+        // Kept by the page, not edited in the Settings window.
+        let kept = (current.messenger_dark_mode.take(), std::mem::take(&mut current.pane_widths));
+        *current = settings;
+        (current.messenger_dark_mode, current.pane_widths) = kept;
+    })?;
 
     if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
         if settings.zoom != previous.zoom {
@@ -162,13 +166,10 @@ pub fn sync_messenger_prefs<R: Runtime>(app: AppHandle<R>, prefs: MessengerPrefs
         // fMess's windows (Settings, title bars, menus) look like Messenger.
         app.set_theme(messenger_theme(Some(&prefs.dark_mode)));
     }
-    let mut settings = current(&app);
-    if settings.messenger_dark_mode.as_deref() == Some(prefs.dark_mode.as_str()) {
+    if current(&app).messenger_dark_mode.as_deref() == Some(prefs.dark_mode.as_str()) {
         return Ok(());
     }
-    settings.messenger_dark_mode = Some(prefs.dark_mode);
-    *app.state::<SettingsState>().0.lock().unwrap() = settings.clone();
-    save(&app, &settings)
+    change(&app, |settings| settings.messenger_dark_mode = Some(prefs.dark_mode)).map(drop)
 }
 
 /// Called by inject.js when a pane has been dragged to a new width.
@@ -177,7 +178,7 @@ pub fn set_pane_widths<R: Runtime>(app: AppHandle<R>, widths: PaneWidths) -> Res
     if current(&app).pane_widths == widths {
         return Ok(());
     }
-    change(&app, |settings| settings.pane_widths = widths)
+    change(&app, |settings| settings.pane_widths = widths).map(drop)
 }
 
 /// The window theme for Messenger's dark mode setting; None follows the system.
@@ -267,11 +268,18 @@ pub fn clear_theme<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
 }
 
 
-fn change<R: Runtime>(app: &AppHandle<R>, edit: impl FnOnce(&mut Settings)) -> Result<(), String> {
-    let mut settings = current(app);
-    edit(&mut settings);
-    *app.state::<SettingsState>().0.lock().unwrap() = settings.clone();
-    save(app, &settings)
+/// Changes the settings and saves them. The lock is held from reading to
+/// saving, so changes made at the same time (by the page and the Settings
+/// window) don't undo each other, and the settings stay as they were when
+/// they can't be saved.
+fn change<R: Runtime>(app: &AppHandle<R>, edit: impl FnOnce(&mut Settings)) -> Result<Settings, String> {
+    let state = app.state::<SettingsState>();
+    let mut settings = state.0.lock().unwrap();
+    let mut next = settings.clone();
+    edit(&mut next);
+    save(app, &next)?;
+    *settings = next.clone();
+    Ok(next)
 }
 
 fn view<R: Runtime>(app: &AppHandle<R>, settings: Settings) -> SettingsView {
@@ -286,10 +294,17 @@ fn view<R: Runtime>(app: &AppHandle<R>, settings: Settings) -> SettingsView {
 fn save<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> Result<(), String> {
     let path = settings_path(app).ok_or("no config directory")?;
     let json = serde_json::to_vec_pretty(settings).expect("settings serialize to JSON");
-    path.parent()
-        .map_or(Ok(()), fs::create_dir_all)
-        .and_then(|()| fs::write(&path, json))
-        .map_err(|err| format!("could not save settings to {}: {err}", path.display()))
+    write_whole(&path, &json).map_err(|err| format!("could not save settings to {}: {err}", path.display()))
+}
+
+/// Writes the file beside itself, then moves it over the old one: if fMess
+/// stops halfway, the old file is still whole (moving replaces the file on
+/// Windows too).
+fn write_whole(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
+    let temporary = path.with_extension("json.tmp");
+    path.parent().map_or(Ok(()), fs::create_dir_all)?;
+    fs::write(&temporary, bytes)?;
+    fs::rename(&temporary, path)
 }
 
 fn settings_path<R: Runtime>(app: &AppHandle<R>) -> Option<PathBuf> {
@@ -297,5 +312,18 @@ fn settings_path<R: Runtime>(app: &AppHandle<R>) -> Option<PathBuf> {
     Some(dir.join("settings.json"))
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-
+    #[test]
+    fn writes_settings_whole() {
+        let dir = std::env::temp_dir().join(format!("fmess-settings-test-{}", std::process::id()));
+        let path = dir.join("settings.json");
+        write_whole(&path, b"{\"zoom\": 1.0}").unwrap();
+        write_whole(&path, b"{\"zoom\": 1.25}").unwrap();
+        assert_eq!(fs::read_to_string(&path).unwrap(), "{\"zoom\": 1.25}");
+        assert!(!path.with_extension("json.tmp").exists(), "the temporary file is left behind");
+        fs::remove_dir_all(dir).unwrap();
+    }
+}

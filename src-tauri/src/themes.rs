@@ -70,7 +70,7 @@ pub fn list_themes<R: Runtime>(app: AppHandle<R>) -> Vec<ThemeInfo> {
             })
         })
         .collect();
-    added.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    added.sort_by_key(|theme| theme.name.to_lowercase());
     themes.extend(added);
     themes
 }
@@ -144,11 +144,12 @@ fn check(css: &str) -> Result<(), String> {
     if css.len() > MAX_SIZE {
         return Err("A theme can be at most 2 MB.".into());
     }
-    let lower = css.to_ascii_lowercase();
+    // As the browser reads it: `\75rl(` is url( and `@\69mport` is @import.
+    let lower = unescape(css).to_ascii_lowercase();
     if lower.contains("@import") {
         return Err("A theme can't load other files (@import).".into());
     }
-    if ["expression(", "javascript:", "image-set(", "</style"].iter().any(|bad| lower.contains(bad)) {
+    if ["expression(", "javascript:", "image-set(", "src(", "</style"].iter().any(|bad| lower.contains(bad)) {
         return Err("This file isn't a theme fMess can use.".into());
     }
     let mut rest = lower.as_str();
@@ -159,6 +160,39 @@ fn check(css: &str) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+/// CSS with its escapes turned into the characters they stand for: a
+/// backslash with up to six hex digits (and one space after them) is that
+/// code point, a backslash before anything else is that character.
+fn unescape(css: &str) -> String {
+    let mut out = String::with_capacity(css.len());
+    let mut chars = css.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c != '\\' {
+            out.push(c);
+            continue;
+        }
+        let mut hex = String::new();
+        while hex.len() < 6 && chars.peek().is_some_and(char::is_ascii_hexdigit) {
+            hex.extend(chars.next());
+        }
+        if hex.is_empty() {
+            // Before a line break the backslash joins the lines.
+            match chars.next() {
+                Some('\n') => {}
+                Some(other) => out.push(other),
+                None => out.push('\u{FFFD}'),
+            }
+            continue;
+        }
+        if chars.peek().is_some_and(|c| c.is_ascii_whitespace()) {
+            chars.next();
+        }
+        let code = u32::from_str_radix(&hex, 16).ok().filter(|&code| code != 0);
+        out.push(code.and_then(char::from_u32).unwrap_or('\u{FFFD}'));
+    }
+    out
 }
 
 /// A value from the theme's opening comment ("name: Zalo").
@@ -227,6 +261,26 @@ mod tests {
         assert!(check("a { background: url(https://example.com/x.png) }").is_err());
         assert!(check("a { background: url(x.png) }").is_err());
         assert!(check("a { background: image-set('x.png' 1x) }").is_err());
+        // The same, written with CSS escapes.
+        assert!(check("a { background: \\75rl(https://example.com/x.png) }").is_err());
+        assert!(check("a { background: \\75 rl(https://example.com/x.png) }").is_err());
+        assert!(check("a { background: u\\rl(https://example.com/x.png) }").is_err());
+        assert!(check("a { background: \\55\\52\\4c(https://example.com/x.png) }").is_err());
+        assert!(check("@\\69mport 'x.css';").is_err());
+        assert!(check("@\\000069mport 'x.css';").is_err());
+        assert!(check("a { background: src('x.png') }").is_err());
+        // An escape that isn't one of those is fine.
+        assert!(check("a::before { content: \"\\201C\" }").is_ok());
+    }
+
+    #[test]
+    fn unescapes_like_css() {
+        assert_eq!(unescape("\\75rl("), "url(");
+        assert_eq!(unescape("\\000075 rl("), "url(");
+        assert_eq!(unescape("u\\rl("), "url(");
+        assert_eq!(unescape("a\\\nb"), "ab");
+        assert_eq!(unescape("\\0"), "\u{FFFD}");
+        assert_eq!(unescape("plain"), "plain");
     }
 
     #[test]

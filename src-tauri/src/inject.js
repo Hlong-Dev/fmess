@@ -1900,7 +1900,15 @@
     history.pushState(null, '', `/messages/t/${thread}/`);
     dispatchEvent(new PopStateEvent('popstate'));
   };
-  window.__fmessReply = async (id, thread, text) => {
+  // One reply at a time: a second one opens its chat, which would take the
+  // message box from a first one still typing.
+  let replying = Promise.resolve();
+  window.__fmessReply = (id, thread, text) => {
+    const reply = replying.then(() => replyNow(id, thread, text));
+    replying = reply.catch(() => {});
+    return reply;
+  };
+  const replyNow = async (id, thread, text) => {
     const inChat = () => new RegExp(`^/messages/(?:e2ee/)?t/${thread}/?$`).test(location.pathname);
     const before = location.pathname;
     const opening = !inChat();
@@ -1909,41 +1917,52 @@
     // Until the chat opens, the previous chat's box is still there.
     const box =
       (await waitFor(() => inChat() && (!opening || composer() !== oldBox) && composer(), 10000)) ?? (inChat() && composer());
+    // Checked before each step, since each wait leaves time to open another
+    // chat: the reply's chat is still open, with the same message box.
+    const here = () => Boolean(box?.isConnected) && inChat() && composer() === box;
     let sent = false;
-    if (box) {
+    let draft = '';
+    let draftOut = false;
+    if (here()) {
       box.focus();
       // A draft in the chat waits while the reply goes out, then comes back.
-      const draft = box.textContent.trim() ? box.textContent : '';
+      draft = box.textContent.trim() ? box.textContent : '';
       if (draft) {
         document.execCommand('selectAll');
         document.execCommand('delete');
-        await waitFor(() => !composer()?.textContent.trim(), 1000);
+        draftOut = true;
+        await waitFor(() => !box.textContent.trim(), 1000);
       }
-      document.execCommand('insertText', false, text);
-      // The editor shows what was typed a moment later.
-      if (await waitFor(() => composer()?.textContent.trim(), 1000)) {
-        (composer() ?? box).dispatchEvent(
-          new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }),
-        );
-        sent = Boolean(await waitFor(() => !composer()?.textContent.trim(), 3000));
+      if (here()) {
+        box.focus();
+        document.execCommand('insertText', false, text);
+        // The editor shows what was typed a moment later.
+        if ((await waitFor(() => box.textContent.trim(), 1000)) && here()) {
+          box.dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }),
+          );
+          sent = Boolean(await waitFor(() => !box.textContent.trim(), 3000));
+        }
       }
-      if (draft) {
+      if (draftOut && here()) {
         // An unsent reply stays in the notice below instead.
         if (!sent) {
           document.execCommand('selectAll');
           document.execCommand('delete');
         }
-        composer()?.focus();
+        box.focus();
         document.execCommand('insertText', false, draft);
+        draftOut = false;
       }
     }
     if (!sent) {
-      // Say so, and keep the reply: clicking opens the chat.
-      const notice = new FMessNotification('Reply not sent', { body: text });
+      // Say so, and keep the reply (and a draft that couldn't go back): clicking opens the chat.
+      const notice = new FMessNotification('Reply not sent', { body: draftOut ? `${text}\n\nYour draft: ${draft}` : text });
       notice.onclick = () => openChat(id, thread);
       return false;
     }
-    if (location.pathname !== before && /^\/messages\/(e2ee\/)?t\//.test(before)) history.back();
+    // Back to the chat that was open, unless another one has been opened since.
+    if (location.pathname !== before && inChat() && /^\/messages\/(e2ee\/)?t\//.test(before)) history.back();
     return true;
   };
 

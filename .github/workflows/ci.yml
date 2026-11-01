@@ -20,7 +20,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
       - run: cargo test --manifest-path src-tauri/Cargo.toml
+      - run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+      # The page script's reply from a notification (Node is on every runner).
+      - run: node tests/notification-reply.mjs

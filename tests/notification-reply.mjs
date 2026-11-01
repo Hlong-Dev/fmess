@@ -1,0 +1,100 @@
+// Runs inject.js's reply from a notification against a fake Messenger: chats
+// with message boxes, an editor that shows changes a moment later, and a user
+// who can open another chat at any time. `node tests/notification-reply.mjs`
+import { readFileSync } from 'node:fs';
+
+const src = readFileSync(new URL('../src-tauri/src/inject.js', import.meta.url), 'utf8');
+const waitFor = src.match(/  const waitFor = async[\s\S]*?\n  };\n/)[0];
+const reply = src.match(/  let replying = Promise\.resolve\(\);[\s\S]*?\n    return true;\n  };\n/)[0];
+
+function world() {
+  const w = { sent: [], notices: [], backs: 0, boxes: {}, focused: null, path: '/messages/t/X/' };
+  const box = (chat) => (w.boxes[chat] ??= {
+    chat,
+    textContent: '',
+    isConnected: true,
+    focus() { w.focused = this; },
+    dispatchEvent(event) {
+      if (event.key !== 'Enter' || !this.textContent.trim()) return;
+      w.sent.push([this.chat, this.textContent]);
+      setTimeout(() => (this.textContent = ''), 40);
+    },
+  });
+  w.open = (chat) => {
+    if (w.current) w.current.isConnected = false;
+    w.path = `/messages/t/${chat}/`;
+    w.current = box(chat);
+    w.current.isConnected = true;
+    // Opening a chat puts the cursor in its message box (fMess does too).
+    w.focused = w.current;
+  };
+  w.open('X');
+  const env = {
+    location: { get pathname() { return w.path; } },
+    history: { back: () => (w.backs += 1) },
+    composer: () => w.current,
+    openChat: (id, thread) => setTimeout(() => w.open(thread), 150),
+    document: {
+      execCommand(cmd, _, value) {
+        const target = w.focused;
+        if (cmd === 'delete') setTimeout(() => (target.textContent = ''), 120);
+        // The editor shows typed text a moment later.
+        if (cmd === 'insertText') setTimeout(() => (target.textContent += value), 120);
+      },
+    },
+    FMessNotification: class { constructor(title, { body }) { w.notices.push(`${title}: ${body}`); } },
+    KeyboardEvent: class { constructor(type, init) { Object.assign(this, init); } },
+    window: {},
+  };
+  const run = new Function(...Object.keys(env), `${waitFor}${reply}return window.__fmessReply;`);
+  w.reply = run(...Object.values(env));
+  return w;
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const results = [];
+const check = (name, ok, detail) => results.push(`${ok ? 'PASS' : 'FAIL'} ${name}${ok ? '' : `: ${JSON.stringify(detail)}`}`);
+
+{
+  const w = world();
+  const ok = await w.reply(1, 'A', 'hi A');
+  check('replies in its chat, then goes back', ok && w.sent.length === 1 && w.sent[0][0] === 'A' && w.backs === 1, w);
+}
+{
+  const w = world();
+  const done = w.reply(1, 'A', 'for A');
+  // A opens at 150 ms; the typed text shows at about 270 ms. Open B at 220 ms.
+  await sleep(220);
+  w.open('B');
+  const ok = await done;
+  check('another chat opened meanwhile: nothing sent anywhere', !ok && w.sent.length === 0 && w.boxes.B.textContent === '' && w.notices.length === 1 && w.backs === 0, { ok, sent: w.sent, B: w.boxes.B.textContent, notices: w.notices });
+}
+{
+  const w = world();
+  const [a, b] = await Promise.all([w.reply(1, 'A', 'for A'), w.reply(2, 'B', 'for B')]);
+  check('two replies at once: each in its own chat', a && b && JSON.stringify(w.sent) === JSON.stringify([['A', 'for A'], ['B', 'for B']]), w.sent);
+}
+{
+  const w = world();
+  w.open('A');
+  w.boxes.A.textContent = 'my draft';
+  const ok = await w.reply(1, 'A', 'quick');
+  await sleep(200);
+  check('a draft comes back after the reply', ok && w.sent[0]?.[1] === 'quick' && w.boxes.A.textContent === 'my draft', { sent: w.sent, A: w.boxes.A.textContent });
+}
+{
+  // Codex's case: the chat has a draft, and another chat opens while the
+  // editor is taking the draft out.
+  const w = world();
+  w.open('A');
+  w.boxes.A.textContent = 'my draft';
+  w.open('X');
+  const done = w.reply(1, 'A', 'for A');
+  await sleep(250);
+  w.open('B');
+  const ok = await done;
+  await sleep(200);
+  check('another chat opened while the draft goes out: nothing sent, draft kept in the notice', !ok && w.sent.length === 0 && w.boxes.B.textContent === '' && /my draft/.test(w.notices[0] ?? ''), { ok, sent: w.sent, B: w.boxes.B.textContent, notices: w.notices });
+}
+console.log(results.join('\n'));
+if (results.some((line) => line.startsWith('FAIL'))) process.exit(1);
