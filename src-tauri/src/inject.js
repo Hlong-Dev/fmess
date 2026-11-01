@@ -887,6 +887,7 @@
     }
     return null;
   };
+  let searchedLog = null;
   const syncPanes = () => {
     if (window.opener || !onChatsPage()) return;
     const main = document.querySelector('[role="main"]');
@@ -898,8 +899,11 @@
     if (list && listEdge.parentElement !== list) list.append(listEdge);
     const log = main?.querySelector('[role="log"]');
     let row = chatRow();
-    if (log && !row?.contains(log)) {
-      // Looked for until the details have been open once.
+    // Looked for until the details have been open once; finding the row
+    // reads styles, so not every second: once per chat, then after a click
+    // or a resize (either can open the details).
+    if (log && !row?.contains(log) && log !== searchedLog) {
+      searchedLog = log;
       const found = findChatRow(log, main);
       if (found) {
         row?.removeAttribute(CHAT_ROW);
@@ -916,11 +920,13 @@
   document.addEventListener(
     'click',
     () => {
+      searchedLog = null;
       setTimeout(syncPanes, 50);
       setTimeout(syncPanes, 400);
     },
     { capture: true, passive: true },
   );
+  window.addEventListener('resize', () => (searchedLog = null), { passive: true });
 
   // A double or triple click selects a whole message and the break after it,
   // and WebKit then fills the space under its last line down to the edge of
