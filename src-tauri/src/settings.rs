@@ -33,6 +33,8 @@ pub struct Settings {
     pub messenger_dark_mode: Option<String>,
     /// The chosen theme (see themes.rs); none shows Messenger as it is.
     pub theme: Option<String>,
+    /// The app's icon shows the theme's (see icon.rs).
+    pub theme_icon: bool,
     /// Widths the panes were dragged to; none keeps Facebook's.
     pub pane_widths: PaneWidths,
 }
@@ -60,6 +62,7 @@ impl Default for Settings {
             block_typing: false,
             messenger_dark_mode: None,
             theme: None,
+            theme_icon: true,
             pane_widths: PaneWidths::default(),
         }
     }
@@ -134,7 +137,7 @@ pub fn update_settings<R: Runtime>(
         (current.messenger_dark_mode, current.pane_widths) = kept;
     })?;
 
-    if settings.theme != previous.theme {
+    if settings.theme != previous.theme || settings.theme_icon != previous.theme_icon {
         icon::apply(&app);
     }
     if let Some(window) = app.get_webview_window(MAIN_WINDOW) {

@@ -1,5 +1,6 @@
 //! With the Zalo or WhatsApp theme, fMess's icon becomes that app's logo with
-//! fMess's own as a badge (branding/icon.py --themes); otherwise it is fMess's.
+//! fMess's own as a badge (branding/icon.py --themes), unless turned off in
+//! Settings; otherwise it is fMess's.
 //! Only while fMess runs, in the Dock (macOS), on its windows and taskbar
 //! button (Windows, Linux) and in the tray; Finder, Start and the app
 //! launchers keep the icon it was installed with.
@@ -24,8 +25,14 @@ fn icon(theme: Option<&str>) -> (&'static [u8], Option<&'static [u8]>) {
     }
 }
 
+/// The theme whose icon to show, if the icon follows the theme.
+fn theme<R: Runtime>(app: &AppHandle<R>) -> Option<String> {
+    let settings = settings::current(app);
+    settings.theme.filter(|_| settings.theme_icon)
+}
+
 fn small<R: Runtime>(app: &AppHandle<R>) -> Option<Image<'static>> {
-    Image::from_bytes(icon(settings::current(app).theme.as_deref()).0).ok()
+    Image::from_bytes(icon(theme(app).as_deref()).0).ok()
 }
 
 /// Shows the chosen theme's icon everywhere fMess has one.
@@ -41,7 +48,7 @@ pub fn apply<R: Runtime>(app: &AppHandle<R>) {
     }
     #[cfg(target_os = "macos")]
     {
-        let png = icon(settings::current(app).theme.as_deref()).1;
+        let png = icon(theme(app).as_deref()).1;
         let _ = app.run_on_main_thread(move || set_dock_icon(png));
     }
 }

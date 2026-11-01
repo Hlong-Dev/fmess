@@ -31,7 +31,7 @@ Key facts:
 - Zoomable photos: pinch or double-click in the photo viewer.
 - Unread badge on the Dock or taskbar, a tray icon, keeps running in the background.
 - Resizable panes: drag the edges of the chat list and the chat details; double-click an edge to reset.
-- Themes: Messenger's own look, or Zalo and WhatsApp looks (Messenger underneath), each in light and dark. With the Zalo or WhatsApp theme, fMess's icon (Dock, taskbar, tray) becomes that app's logo with a small fMess badge while it runs.
+- Themes: Messenger's own look, or Zalo and WhatsApp looks (Messenger underneath), each in light and dark. With the Zalo or WhatsApp theme, fMess's icon (Dock, taskbar, tray) becomes that app's logo with a small fMess badge while it runs (a switch in Settings turns this off).
 - Links in chats open in the default browser without Facebook's redirect and tracking tags.
 
 ## Compared with other apps
