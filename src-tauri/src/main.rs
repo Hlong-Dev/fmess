@@ -13,6 +13,8 @@ mod settings;
 mod themes;
 mod update;
 mod webview;
+#[cfg(windows)]
+mod webview2;
 
 use tauri::{AppHandle, Manager, Runtime, WindowEvent};
 use tauri_plugin_window_state::StateFlags;
@@ -23,6 +25,11 @@ pub const MAIN_WINDOW: &str = "main";
 pub const AUTOSTART_ARG: &str = "--autostart";
 
 fn main() {
+    // Without WebView2 no window can open (Windows).
+    #[cfg(windows)]
+    if !webview2::check() {
+        return;
+    }
     // Before any web view exists: WebKit asks AppKit once, when it starts.
     #[cfg(target_os = "macos")]
     webview::prefer_overlay_scrollbars();
