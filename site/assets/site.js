@@ -8,7 +8,7 @@ const GA_ID = 'G-9JEGSLHZXT';
 // element with that data-i18n key; a key missing here keeps the English.
 const TRANSLATIONS = {
   vi: {
-    title: "fMess – Ứng dụng Messenger cho máy tính",
+    title: "fMess - Ứng dụng Messenger cho máy tính",
     description: "Messenger.com đã chính thức bị khai tử. fMess mang trải nghiệm Messenger trở lại máy tính với ứng dụng gọn nhẹ cho macOS, Windows và Linux. Miễn phí, mã nguồn mở.",
     nav_features: "Tính năng",
     nav_notifications: "Thông báo",
