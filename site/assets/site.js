@@ -31,7 +31,7 @@ const TRANSLATIONS = {
     shot_whatsapp: "Cùng đoạn chat đó với theme WhatsApp của fMess",
     themes_label: "Giao diện",
     shot_title: "Dùng Zalo, WhatsApp để chat Messenger, tại sao không?",
-    shot_note: "Giao diện Zalo, WhatsApp nhưng thực chất là Messenger. Tha hồ tám giữa giờ làm.",
+    shot_note: "Giao diện Zalo, WhatsApp nhưng thực chất là Messenger. Tha hồ tám giữa giờ làm, hoặc đơn giản là muốn thử điều gì đó mới mẻ.",
     mock_chats: "Đoạn chat",
     mock_search: "Tìm kiếm trên Messenger",
     mock_dinner: "Tối nay đi ăn không? 🍜",
