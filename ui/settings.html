@@ -61,7 +61,7 @@
     padding: 10px 14px;
     min-height: 44px;
   }
-  .row + .row { border-top: 1px solid var(--separator); }
+  .row + .row, .themes + .row { border-top: 1px solid var(--separator); }
   .row.disabled { opacity: 0.45; }
   .label { flex: 1; }
   .hint { display: block; margin-top: 2px; font-size: 11.5px; color: var(--muted); }
@@ -219,16 +219,6 @@
         <option value="on" hidden></option>
       </select>
     </label>
-    <label class="row" data-messenger-row>
-      <span class="label">Dark Mode
-        <span class="hint">Messenger's appearance. Automatic follows your system.</span>
-      </span>
-      <select data-pref="darkMode">
-        <option value="DISABLED">Off</option>
-        <option value="ENABLED">On</option>
-        <option value="USE_SYSTEM">Automatic</option>
-      </select>
-    </label>
     <div class="row" data-messenger-row>
       <span class="label">More Messenger preferences
         <span class="hint">Payments, message delivery and blocking.</span>
@@ -302,6 +292,16 @@
       </span>
     </div>
     <div class="themes" id="themes" role="radiogroup" aria-label="Theme"></div>
+    <label class="row" data-messenger-row>
+      <span class="label">Dark Mode
+        <span class="hint">Messenger's appearance. Automatic follows your system.</span>
+      </span>
+      <select data-pref="darkMode">
+        <option value="DISABLED">Off</option>
+        <option value="ENABLED">On</option>
+        <option value="USE_SYSTEM">Automatic</option>
+      </select>
+    </label>
   </div>
 
   <section data-only="macos" hidden>

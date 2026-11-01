@@ -496,3 +496,13 @@ html[data-fmess-dark] [role="main"]:has([role="button"][aria-label="Search"]) [a
 [role="main"] div:has([role="log"]) > div:has([role="list"]):has([aria-label="Search"]):not(:has([role="log"])) {
   box-shadow: none !important;
 }
+
+/* Tooltips: Facebook draws them dark, so their text stays light. */
+[role="tooltip"],
+[role="tooltip"] .__fb-dark-mode,
+[role="tooltip"] .__fb-light-mode {
+  --primary-text: #f5f6f7 !important;
+  --secondary-text: #b0b3b8 !important;
+  --primary-icon: #f5f6f7 !important;
+  --secondary-icon: #b0b3b8 !important;
+}

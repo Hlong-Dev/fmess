@@ -720,6 +720,32 @@
     html[${CHATS}] img[height="100%"][width="100%"] { height: auto !important; }
   `;
   withRoot((root) => root.append(layoutStyle));
+
+  // In WebKit, Facebook trims the space above and below message text with
+  // negative margins on empty ::before/::after blocks, and WebKit then paints
+  // a selection lower than the text. The same margins on the text itself lay
+  // it out the same and select right. Only where Facebook trims that way
+  // (Chromium gets text-box-trim instead).
+  const TRIMMED = 'data-fmess-trimmed-text';
+  const TRIMMED_TEXT = '[data-message-id] [role="presentation"] > [dir="auto"]';
+  const trimStyle = document.createElement('style');
+  trimStyle.textContent = `
+    html[${TRIMMED}] ${TRIMMED_TEXT}::before,
+    html[${TRIMMED}] ${TRIMMED_TEXT}::after { content: none !important; }
+    html[${TRIMMED}] ${TRIMMED_TEXT} { margin-block: var(--fmess-text-trim) !important; }
+  `;
+  withRoot((root) => root.append(trimStyle));
+  const findTrim = setInterval(() => {
+    const root = document.documentElement;
+    const text = document.querySelector(TRIMMED_TEXT);
+    if (!root || !text || root.hasAttribute(TRIMMED)) return;
+    clearInterval(findTrim);
+    const top = getComputedStyle(text, '::before').marginTop;
+    const bottom = getComputedStyle(text, '::after').marginBottom;
+    if (parseFloat(top) >= 0 && parseFloat(bottom) >= 0) return;
+    root.style.setProperty('--fmess-text-trim', `${top} ${bottom}`);
+    root.setAttribute(TRIMMED, '');
+  }, 2000);
   if (titleBarInset) {
     const dragStrip = document.createElement('div');
     dragStrip.setAttribute('data-tauri-drag-region', '');
