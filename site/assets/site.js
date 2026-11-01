@@ -26,6 +26,11 @@ const TRANSLATIONS = {
     meta_free: "Miễn phí, mã nguồn mở",
     meta_platforms: "macOS, Windows, Linux",
     meta_small: "Dung lượng chỉ vài MB",
+    shot_messenger: "fMess trên Mac: danh sách chat và một đoạn chat, giao diện Messenger gốc",
+    shot_zalo: "Cùng đoạn chat đó với theme Zalo của fMess",
+    shot_whatsapp: "Cùng đoạn chat đó với theme WhatsApp của fMess",
+    themes_label: "Giao diện",
+    shot_note: "Một đoạn chat, ba giao diện. Ảnh chụp thật, tên đặt cho vui.",
     mock_chats: "Đoạn chat",
     mock_search: "Tìm kiếm trên Messenger",
     mock_dinner: "Tối nay đi ăn không? 🍜",
@@ -154,6 +159,14 @@ const setLanguage = (language) => {
     if (!english.has(el)) english.set(el, el.innerHTML);
     el.innerHTML = words[el.dataset.i18n] ?? english.get(el);
   }
+  for (const [key, attribute] of [['i18nAlt', 'alt'], ['i18nLabel', 'aria-label']]) {
+    for (const el of document.querySelectorAll(`[data-${key === 'i18nAlt' ? 'i18n-alt' : 'i18n-label'}]`)) {
+      const id = `${attribute}:${el.dataset[key]}`;
+      if (!english.has(el)) english.set(el, {});
+      english.get(el)[id] ??= el.getAttribute(attribute);
+      el.setAttribute(attribute, words[el.dataset[key]] ?? english.get(el)[id]);
+    }
+  }
   // A page names its own title and description keys (data-title, data-description on body).
   const page = document.body.dataset;
   if (!english.has(document)) english.set(document, document.title);
@@ -229,6 +242,28 @@ document.addEventListener('click', (event) => {
 });
 
 
+// The hero's screenshots: Messenger's look, then the themes, in turn, unless
+// the visitor's system asks for less motion. Pressing a look shows it and
+// stops the turns.
+const shot = document.querySelector('.shot');
+if (shot) {
+  const frames = [...shot.querySelectorAll('.frame')];
+  const buttons = [...shot.querySelectorAll('.looks button')];
+  let current = 0;
+  const show = (index) => {
+    current = index;
+    frames.forEach((frame, i) => frame.classList.toggle('on', i === index));
+    buttons.forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
+  };
+  const turns = matchMedia('(prefers-reduced-motion: reduce)').matches ? null : setInterval(() => show((current + 1) % frames.length), 3500);
+  buttons.forEach((button, i) =>
+    button.addEventListener('click', () => {
+      clearInterval(turns);
+      show(i);
+    }),
+  );
+}
+
 // Motion (motion.dev, assets/vendor): the hero plays in, sections rise as
 // they scroll into view, cards answer the pointer.
 if (document.documentElement.classList.contains('motion')) {
@@ -242,15 +277,10 @@ function playMotion({ animate, inView, hover, press, stagger, spring }) {
   const bounce = (amount, duration) => ({ type: spring, bounce: amount, duration });
   const forever = (target, keyframes, duration) => animate(target, keyframes, { duration, ease: 'easeInOut', repeat: Infinity });
 
-  // The hero: the words, then the window, then the chat plays out and a
-  // notification drops in.
+  // The hero: the words, then the app.
   animate('.hero .eyebrow, .hero h1, .hero .lead, .hero .cta, .hero .meta', rise, { duration: 0.9, ease, delay: stagger(0.08) });
-  animate('.window', { opacity: [0, 1], y: [36, 0], scale: [0.97, 1] }, { duration: 1.1, ease, delay: 0.25 }).then(() =>
-    forever('.window', { y: [0, -8, 0] }, 8),
-  );
-  animate('.msgs > *', { opacity: [0, 1], y: [12, 0], scale: [0.92, 1] }, { ...bounce(0.35, 0.6), delay: stagger(0.42, { startDelay: 0.9 }) });
-  animate('.stage > .note', { opacity: [0, 1], y: [-22, 0], scale: [0.95, 1] }, { ...bounce(0.45, 0.8), delay: 3.4 }).then(() =>
-    forever('.stage > .note', { y: [0, -6, 0] }, 6),
+  animate('.shot', { opacity: [0, 1], y: [36, 0], scale: [0.97, 1] }, { duration: 1.1, ease, delay: 0.25 }).then(() =>
+    forever('.shot .frames', { y: [0, -8, 0] }, 8),
   );
 
   // Sections rise as they come into view; the items of a list follow one another.

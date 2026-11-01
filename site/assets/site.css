@@ -75,41 +75,24 @@ h1 { font-size: clamp(44px, 6.2vw, 76px); line-height: 1.02; letter-spacing: -0.
 .meta { margin-top: 22px; font-size: 14px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 16px; }
 .meta span::before { content: "✓ "; color: var(--violet); font-weight: 700; }
 
-/* The app, drawn */
+/* The app: real screenshots, one per look */
 .stage { position: relative; }
 .stage::before { content: ""; position: absolute; inset: 8% -10% -6% 6%; background: var(--ink); filter: blur(90px); opacity: 0.28; border-radius: 50%; z-index: 0; }
-.window { position: relative; z-index: 1; border-radius: 14px; background: var(--app-bg); box-shadow: var(--shadow); border: 1px solid var(--line); overflow: hidden; display: grid; grid-template-columns: 36% 1fr; height: 470px; font-size: 13px; }
-.lights { position: absolute; top: 12px; left: 14px; display: flex; gap: 8px; z-index: 2; }
-.lights i { width: 12px; height: 12px; border-radius: 50%; display: block; }
-.lights i:nth-child(1) { background: #ff5f57; } .lights i:nth-child(2) { background: #febc2e; } .lights i:nth-child(3) { background: #28c840; }
-.side { background: var(--app-side); border-right: 1px solid var(--app-line); padding: 40px 10px 10px; display: flex; flex-direction: column; gap: 4px; }
-.side h4 { margin: 0 8px 8px; font-size: 22px; letter-spacing: -0.02em; }
-.search { margin: 0 6px 8px; padding: 7px 12px; border-radius: 999px; background: var(--bg-soft); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 10px; }
-.row.active { background: color-mix(in srgb, var(--violet) 12%, transparent); }
-.row div { min-width: 0; }
-.row b { display: block; font-weight: 600; }
-.row small { display: block; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row.unread small { color: var(--text); font-weight: 600; }
+.shot { position: relative; z-index: 1; margin: 0; }
+.frames { position: relative; aspect-ratio: 880 / 600; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: var(--shadow); border: 1px solid var(--line); }
+.frame { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 0.6s ease; }
+.frame.on { opacity: 1; }
+.shot figcaption { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; }
+.looks { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--bg-soft); border: 1px solid var(--line); }
+.looks button { font: inherit; font-size: 13px; font-weight: 600; padding: 6px 14px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); cursor: pointer; }
+.looks button[aria-pressed="true"] { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(20, 20, 40, 0.15); }
+.shot-note { font-size: 13px; color: var(--muted); }
 .av { width: 40px; height: 40px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 15px; }
 .a1 { background: linear-gradient(135deg, #ffb36b, #ff5f8a); }
 .a2 { background: linear-gradient(135deg, #5fd3ff, #4c6bff); }
 .a3 { background: linear-gradient(135deg, #7ee2a8, #1fa67a); }
 .a4 { background: linear-gradient(135deg, #c79bff, #7a4bff); }
 .a5 { background: linear-gradient(135deg, #ffd66b, #f29a1f); }
-.chat { display: flex; flex-direction: column; min-width: 0; }
-.chat header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--app-line); }
-.chat header .av { width: 34px; height: 34px; font-size: 13px; }
-.chat header small { display: block; color: var(--muted); font-size: 12px; }
-.msgs { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 6px; justify-content: flex-end; }
-.bubble { max-width: 74%; padding: 8px 13px; border-radius: 18px; line-height: 1.35; }
-.in { background: var(--bubble-in); align-self: flex-start; }
-.out { background: var(--ink); color: #fff; align-self: flex-end; }
-.typing { align-self: flex-start; display: flex; gap: 4px; padding: 12px 14px; background: var(--bubble-in); border-radius: 18px; }
-.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); display: block; animation: dot 1.2s infinite; }
-.typing i:nth-child(2) { animation-delay: 0.15s; } .typing i:nth-child(3) { animation-delay: 0.3s; }
-@keyframes dot { 0%, 60%, 100% { opacity: 0.35; transform: none; } 30% { opacity: 1; transform: translateY(-3px); } }
-.composer { margin: 0 14px 14px; padding: 9px 14px; border-radius: 999px; background: var(--bg-soft); color: var(--muted); }
 
 /* A macOS notification, drawn */
 .note { position: absolute; z-index: 3; right: -18px; top: -26px; width: 330px; padding: 12px 14px; border-radius: 18px; background: color-mix(in srgb, var(--card) 82%, transparent); backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%); border: 1px solid var(--line); box-shadow: 0 18px 50px rgba(20, 20, 40, 0.22); display: grid; grid-template-columns: 42px 1fr; gap: 4px 12px; font-size: 13px; }
@@ -185,13 +168,10 @@ footer p { margin: 0; max-width: 44em; }
   .lang { margin-left: auto; }
   .hero { padding-top: 44px; }
   .grid, .platforms, .keys { grid-template-columns: 1fr; }
-  .window { grid-template-columns: 1fr; height: 400px; }
-  .side { display: none; }
   .stage { margin-top: 56px; }
-  .note { width: calc(100% - 16px); right: 8px; top: -56px; }
   section { padding: 72px 0; }
 }
-@media (prefers-reduced-motion: reduce) { .note, .typing i { animation: none; } .btn { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .note { animation: none; } .btn, .frame { transition: none; } }
 
 /* Downloads */
 .choices { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
@@ -203,7 +183,7 @@ footer p { margin: 0; max-width: 44em; }
 /* Motion: assets/site.js plays it with the Motion library (motion.dev). The
    hero waits hidden for it, so nothing jumps; html.motion is set only when
    the visitor's system allows motion. */
-html.motion :is(.hero .eyebrow, .hero h1, .hero .lead, .hero .cta, .hero .meta, .window, .stage > .note, .msgs > *) { opacity: 0; }
+html.motion :is(.hero .eyebrow, .hero h1, .hero .lead, .hero .cta, .hero .meta, .shot) { opacity: 0; }
 .card { transition: border-color 0.3s, box-shadow 0.3s; }
 .card:hover { border-color: color-mix(in srgb, var(--violet) 40%, var(--line)); box-shadow: 0 22px 50px rgba(20, 20, 40, 0.16); }
 @media (prefers-reduced-motion: no-preference) {
