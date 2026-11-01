@@ -1,5 +1,5 @@
 //! Themes change how Messenger looks: CSS that inject.js adds to the page,
-//! picked in Settings. Lục and Zalo come with fMess; other themes are .css files the
+//! picked in Settings. Lục, Zalo and WhatsApp come with fMess; other themes are .css files the
 //! user adds, kept in the app data folder. A theme is CSS and nothing more: no
 //! @import and no url() other than data: ones, so it can't load anything.
 //!
@@ -27,6 +27,7 @@ use crate::settings;
 const BUILT_IN: &[(&str, &str)] = &[
     ("luc", include_str!("../themes/luc.css")),
     ("zalo", include_str!("../themes/zalo.css")),
+    ("whatsapp", include_str!("../themes/whatsapp.css")),
 ];
 const MAX_SIZE: usize = 2 * 1024 * 1024;
 
@@ -227,6 +228,15 @@ mod tests {
         assert!(check("a { background: url(https://example.com/x.png) }").is_err());
         assert!(check("a { background: url(x.png) }").is_err());
         assert!(check("a { background: image-set('x.png' 1x) }").is_err());
+    }
+
+    #[test]
+    fn built_in_themes_load_nothing_and_have_cards() {
+        for (id, css) in BUILT_IN {
+            assert!(check(css).is_ok(), "{id} loads something");
+            assert!(header(css, "name").is_some(), "{id} has no name");
+            assert!(preview(css).is_some(), "{id} has no preview colours");
+        }
     }
 
     #[test]
