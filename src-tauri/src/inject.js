@@ -600,7 +600,9 @@
         focusComposer();
         // Defined further down, after this first runs.
         setTimeout(() => clearOpenChatNotifications());
-        setTimeout(() => window.__fmessReturnDraft?.());
+        // The box still on screen belongs to the chat that was open.
+        const previousBox = document.querySelector('[role="main"] [contenteditable="true"][role="textbox"]');
+        setTimeout(() => window.__fmessReturnDraft?.(previousBox));
       }
     }
   };
@@ -1913,16 +1915,20 @@
   // another chat was opened meanwhile, goes back the next time the chat is
   // open (if nothing has been typed there since).
   const strayDrafts = new Map();
-  const returnStrayDraft = async () => {
+  // `previousBox` is the message box on screen when the address changed:
+  // Messenger changes the address first, and the chat that was open keeps
+  // its box a moment longer. Only a box that comes after it is this chat's.
+  const returnStrayDraft = async (previousBox) => {
     const openThread = () => location.pathname.match(/^\/messages\/(?:e2ee\/)?t\/([^/]+)/)?.[1];
     const thread = openThread();
     const draft = thread && strayDrafts.get(thread);
     if (!draft) return;
-    const box = await waitFor(() => openThread() === thread && composer(), 5000);
-    if (!box || openThread() !== thread || box.textContent.trim()) return;
-    strayDrafts.delete(thread);
+    const box = await waitFor(() => openThread() === thread && composer() !== previousBox && composer(), 5000);
+    if (!box || openThread() !== thread || composer() !== box || box.textContent.trim()) return;
     box.focus();
     document.execCommand('insertText', false, draft);
+    // Kept until it is really back.
+    if (await waitFor(() => box.isConnected && box.textContent.includes(draft.trim()), 2000)) strayDrafts.delete(thread);
   };
   window.__fmessReturnDraft = returnStrayDraft;
   const replyNow = async (id, thread, text) => {

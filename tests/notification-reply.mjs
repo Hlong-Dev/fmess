@@ -30,6 +30,11 @@ function world() {
     w.focused = w.current;
   };
   w.open('X');
+  // Messenger changes the address first, the message box a moment later.
+  w.openSlowly = (chat, ms) => {
+    w.path = `/messages/t/${chat}/`;
+    setTimeout(() => w.open(chat), ms);
+  };
   const env = {
     location: { get pathname() { return w.path; } },
     history: { back: () => (w.backs += 1) },
@@ -115,6 +120,27 @@ const check = (name, ok, detail) => results.push(`${ok ? 'PASS' : 'FAIL'} ${name
   await w.returnDraft();
   await sleep(200);
   check('another chat opened right after sending: the draft comes back to its chat', ok && w.sent.length === 1 && w.sent[0][0] === 'A' && w.boxes.B.textContent === '' && kept && w.boxes.A.textContent === 'my draft', { ok, sent: w.sent, A: w.boxes.A.textContent, B: w.boxes.B.textContent, notices: w.notices });
+}
+{
+  // Codex's third case: back to the chat with a kept draft, its address
+  // before its message box. The draft mustn't go into the box still there.
+  const w = world();
+  w.open('A');
+  w.boxes.A.textContent = 'my draft';
+  w.open('X');
+  const done = w.reply(1, 'A', 'quick');
+  while (!w.sent.length) await sleep(5);
+  w.open('B');
+  await done;
+  w.boxes.B.textContent = '';
+  const previousBox = w.current;
+  w.openSlowly('A', 300);
+  const returning = w.returnDraft(previousBox);
+  await sleep(150);
+  const inBWhileSlow = w.boxes.B.textContent;
+  await returning;
+  await sleep(200);
+  check('address before message box: the draft waits for its own chat', inBWhileSlow === '' && w.boxes.B.textContent === '' && w.boxes.A.textContent === 'my draft', { inBWhileSlow, B: w.boxes.B.textContent, A: w.boxes.A.textContent });
 }
 console.log(results.join('\n'));
 if (results.some((line) => line.startsWith('FAIL'))) process.exit(1);
