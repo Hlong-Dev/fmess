@@ -111,7 +111,9 @@ html[data-fmess-dark] {
   --messenger-card-background: transparent !important;
 }
 
-/* The blue bar down the left, with Zalo's own icons, below a title bar. */
+/* The blue bar down the left, with Zalo's own icons, below a title bar.
+   The title bar is drawn only where the window has none of the system's
+   (macOS): --fmess-title-bar is 0 on Windows and Linux. */
 html::before {
   content: "Zalo - " attr(data-fmess-name);
   position: fixed;
@@ -119,12 +121,13 @@ html::before {
   top: 0;
   left: 0;
   right: 0;
-  height: 28px;
+  height: var(--fmess-title-bar, 0px);
+  overflow: hidden;
   box-sizing: border-box;
   padding-left: 84px;
   background: var(--z-titlebar);
   color: var(--z-text);
-  font: 600 12px/28px system-ui, -apple-system, sans-serif;
+  font: 600 12px/var(--fmess-title-bar, 0px) system-ui, -apple-system, sans-serif;
   pointer-events: none;
 }
 [role="navigation"] {
@@ -172,7 +175,7 @@ html[data-fmess-unread]::after {
   position: fixed;
   z-index: 2147483000;
   left: 36px;
-  top: 98px;
+  top: calc(var(--fmess-title-bar, 0px) + 70px);
   min-width: 16px;
   height: 16px;
   padding: 0 4px;

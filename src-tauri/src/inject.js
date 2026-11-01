@@ -684,6 +684,8 @@
   const BAR_SHOWN = `html:not([${CHATS}])`;
   const layoutStyle = document.createElement('style');
   layoutStyle.textContent = `
+    /* For themes that draw in the strip: 0 where the system draws the title bar. */
+    :root { --fmess-title-bar: ${inset}; }
     ${BAR_HIDDEN} div[role="banner"] { display: none !important; }
     ${BAR_HIDDEN}, ${BAR_HIDDEN} * { --header-height: ${inset} !important; }
     :is(${BAR_SHOWN}) div[role="banner"] { transform: translateY(${inset}); }
