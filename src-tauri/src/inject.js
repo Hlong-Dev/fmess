@@ -724,11 +724,14 @@
   // A double or triple click selects a whole message and the break after it,
   // and WebKit then fills the space under its last line down to the edge of
   // the bubble. WebKit fills only what can be selected, so the messages can't
-  // be, and their text still can.
+  // be (Facebook marks every layer of a bubble selectable, so all of them),
+  // and their text still can.
   const selectStyle = document.createElement('style');
   selectStyle.textContent = `
-    html[${CHATS}] [data-message-id] { -webkit-user-select: none !important; user-select: none !important; }
-    html[${CHATS}] [data-message-id] [dir="auto"] { -webkit-user-select: text !important; user-select: text !important; }
+    html[${CHATS}] [data-message-id],
+    html[${CHATS}] [data-message-id] * { -webkit-user-select: none !important; user-select: none !important; }
+    html[${CHATS}] [data-message-id] [dir="auto"],
+    html[${CHATS}] [data-message-id] [dir="auto"] * { -webkit-user-select: text !important; user-select: text !important; }
   `;
   withRoot((root) => root.append(selectStyle));
   if (titleBarInset) {
