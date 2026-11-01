@@ -83,17 +83,24 @@ pub fn open_settings_window<R: Runtime>(app: &AppHandle<R>) {
         let _ = window.set_focus();
         return;
     }
-    let result = WebviewWindowBuilder::new(app, SETTINGS_WINDOW, WebviewUrl::App("settings.html".into()))
-        .title("fMess Settings")
-        .inner_size(640.0, 780.0)
-        .min_inner_size(560.0, 560.0)
-        .resizable(true)
-        .minimizable(false)
-        .maximizable(false)
-        .build();
-    if let Err(err) = result {
-        eprintln!("could not open settings: {err}");
-    }
+    // Built away from the main thread: Settings opens from synchronous
+    // commands (Ctrl+, from the page) and menu handlers, which run there, and
+    // on Windows building a window there deadlocks (WebView2), leaving a
+    // white window that can't be closed.
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        let result = WebviewWindowBuilder::new(&app, SETTINGS_WINDOW, WebviewUrl::App("settings.html".into()))
+            .title("fMess Settings")
+            .inner_size(640.0, 780.0)
+            .min_inner_size(560.0, 560.0)
+            .resizable(true)
+            .minimizable(false)
+            .maximizable(false)
+            .build();
+        if let Err(err) = result {
+            eprintln!("could not open settings: {err}");
+        }
+    });
 }
 
 /// Called by inject.js when the photo/video viewer opens or closes. The viewer
