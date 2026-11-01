@@ -167,7 +167,7 @@ const setLanguage = (language) => {
       el.setAttribute(attribute, words[el.dataset[key]] ?? english.get(el)[id]);
     }
   }
-  for (const img of document.querySelectorAll('img[data-shot]')) img.src = `assets/shot-${img.dataset.shot}${language === 'vi' ? '-vi' : ''}.webp`;
+  for (const img of document.querySelectorAll('img[data-shot]')) img.src = `assets/shot-${img.dataset.shot}${language === 'vi' ? '-vi' : ''}.webp?v=2`;
   // A page names its own title and description keys (data-title, data-description on body).
   const page = document.body.dataset;
   if (!english.has(document)) english.set(document, document.title);
