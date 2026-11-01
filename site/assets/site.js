@@ -1,8 +1,8 @@
 // fmess.app: the page's languages, and Google Analytics when it has an ID.
 
-// Google Analytics 4. Empty until a measurement ID (G-XXXXXXXXXX) is set here;
-// nothing is loaded or sent before that.
-const GA_ID = '';
+// Google Analytics 4: the fmess.app property (account fMess). Without an ID
+// nothing is loaded or sent.
+const GA_ID = 'G-9JEGSLHZXT';
 
 // English is in the page itself. Each translation replaces the HTML of the
 // element with that data-i18n key; a key missing here keeps the English.
@@ -16,7 +16,7 @@ const TRANSLATIONS = {
     nav_faq: "Hỏi đáp",
     nav_download: "Tải về",
     eyebrow: "Meta đã khai tử Messenger cho máy tính. <b>fMess hồi sinh nó.</b>",
-    hero_title: "Messenger<br><span class=\"ink-text\">trở&nbsp;lại trên máy&nbsp;tính.</span>",
+    hero_title: "Messenger<br><span class=\"ink-text\">đã trở&nbsp;lại trên máy&nbsp;tính.</span>",
     hero_lead: "Ứng dụng native gọn nhẹ cho macOS, Windows và Linux: thông báo đầy đủ, gọi thoại/video, phím tắt quen thuộc.",
     download_hero: "Tải fMess",
     download_mac: "Tải cho Mac",
