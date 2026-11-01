@@ -142,5 +142,32 @@ const check = (name, ok, detail) => results.push(`${ok ? 'PASS' : 'FAIL'} ${name
   await sleep(200);
   check('address before message box: the draft waits for its own chat', inBWhileSlow === '' && w.boxes.B.textContent === '' && w.boxes.A.textContent === 'my draft', { inBWhileSlow, B: w.boxes.B.textContent, A: w.boxes.A.textContent });
 }
+{
+  // Codex's fourth case: A, then C, then A again before A's box came. The
+  // first visit's wait must not take C's box for A's.
+  const w = world();
+  w.open('A');
+  w.boxes.A.textContent = 'my draft';
+  w.open('X');
+  const done = w.reply(1, 'A', 'quick');
+  while (!w.sent.length) await sleep(5);
+  w.open('B');
+  await done;
+  let visit = 0;
+  const go = (chat, ms) => {
+    const previousBox = w.current;
+    const mine = ++visit;
+    w.openSlowly(chat, ms);
+    return w.returnDraft(previousBox, () => mine === visit);
+  };
+  const first = go('A', 400);
+  await sleep(100);
+  go('C', 50);
+  await sleep(150);
+  const second = go('A', 300);
+  await Promise.all([first, second]);
+  await sleep(300);
+  check('A, C, then A again: the draft goes back to A once, never to C', (w.boxes.C?.textContent ?? '') === '' && w.boxes.A.textContent === 'my draft', { A: w.boxes.A.textContent, C: w.boxes.C?.textContent });
+}
 console.log(results.join('\n'));
 if (results.some((line) => line.startsWith('FAIL'))) process.exit(1);

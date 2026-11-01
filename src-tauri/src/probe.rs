@@ -86,6 +86,9 @@ fn snapshot<R: Runtime>(window: &tauri::WebviewWindow<R>, path: String) {
         // SAFETY: the platform web view is a WKWebView, on the main thread.
         unsafe {
             let config: Retained<AnyObject> = msg_send![class!(WKSnapshotConfiguration), new];
+            // With the selection drawn (left out by default), to check how it looks.
+            let yes: *mut AnyObject = msg_send![class!(NSNumber), numberWithBool: true];
+            let _: () = msg_send![&*config, setValue: yes, forKey: &*NSString::from_str("includesSelectionHighlighting")];
             let _: () = msg_send![view, takeSnapshotWithConfiguration: &*config, completionHandler: &*done];
         }
     });

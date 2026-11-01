@@ -577,6 +577,8 @@
   // The chats, and the photo/video viewer opened from them.
   const onChatsPage = () => /^\/(messages|messenger_media)(\/|$)/.test(location.pathname);
   let lastPath = null;
+  // Counts the chats opened, so work for one stops when another opens.
+  let chatVisit = 0;
   const MEDIA = 'data-fmess-media';
   let viewerOpen = false;
   let viewerCloseTimer;
@@ -595,14 +597,23 @@
       setTimeout(() => window.__TAURI_INTERNALS__?.invoke('set_viewer_open', { open: inViewer }).catch(() => {}));
     }
     if (location.pathname !== lastPath) {
+      // /t/<id> and /e2ee/t/<id> are the same chat (Facebook goes from one
+      // to the other as an encrypted chat opens).
+      const chatOf = (path) => path?.match(/^\/messages\/(?:e2ee\/)?t\/([^/]+)/)?.[1] ?? path;
+      const anotherChat = chatOf(location.pathname) !== chatOf(lastPath);
       lastPath = location.pathname;
+      if (anotherChat) chatVisit += 1;
       if (/^\/messages\/(e2ee\/)?t\//.test(lastPath)) {
         focusComposer();
         // Defined further down, after this first runs.
         setTimeout(() => clearOpenChatNotifications());
-        // The box still on screen belongs to the chat that was open.
-        const previousBox = document.querySelector('[role="main"] [contenteditable="true"][role="textbox"]');
-        setTimeout(() => window.__fmessReturnDraft?.(previousBox));
+        if (anotherChat) {
+          // The box still on screen belongs to the chat that was open; a
+          // draft kept for this chat goes back only during this visit.
+          const previousBox = document.querySelector('[role="main"] [contenteditable="true"][role="textbox"]');
+          const visit = chatVisit;
+          setTimeout(() => window.__fmessReturnDraft?.(previousBox, () => visit === chatVisit));
+        }
       }
     }
   };
@@ -1019,15 +1030,17 @@
 
   // A double or triple click selects a whole message and the break after it,
   // and WebKit then fills the space under its last line down to the edge of
-  // the bubble. WebKit fills only what can be selected, so the messages can't
-  // be (Facebook marks every layer of a bubble selectable, so all of them),
-  // and their text still can.
+  // the bubble, or across the chat. WebKit fills only what can be selected,
+  // so nothing in the chat can be but text (Facebook marks every layer
+  // selectable, and wraps messages in more of them now and then: the rule
+  // used to cover [data-message-id] only, then rows gained a full-width
+  // role="article" around it).
   const selectStyle = document.createElement('style');
   selectStyle.textContent = `
-    html[${CHATS}] [data-message-id],
-    html[${CHATS}] [data-message-id] * { -webkit-user-select: none !important; user-select: none !important; }
-    html[${CHATS}] [data-message-id] [dir="auto"],
-    html[${CHATS}] [data-message-id] [dir="auto"] * { -webkit-user-select: text !important; user-select: text !important; }
+    html[${CHATS}] [role="log"],
+    html[${CHATS}] [role="log"] * { -webkit-user-select: none !important; user-select: none !important; }
+    html[${CHATS}] [role="log"] [dir="auto"],
+    html[${CHATS}] [role="log"] [dir="auto"] * { -webkit-user-select: text !important; user-select: text !important; }
   `;
   withRoot((root) => root.append(selectStyle));
   if (titleBarInset) {
@@ -1918,13 +1931,15 @@
   // `previousBox` is the message box on screen when the address changed:
   // Messenger changes the address first, and the chat that was open keeps
   // its box a moment longer. Only a box that comes after it is this chat's.
-  const returnStrayDraft = async (previousBox) => {
+  // `stillHere` turns false once another chat is opened, even if this one is
+  // opened again after: a box found then could be the other chat's.
+  const returnStrayDraft = async (previousBox, stillHere = () => true) => {
     const openThread = () => location.pathname.match(/^\/messages\/(?:e2ee\/)?t\/([^/]+)/)?.[1];
     const thread = openThread();
     const draft = thread && strayDrafts.get(thread);
     if (!draft) return;
-    const box = await waitFor(() => openThread() === thread && composer() !== previousBox && composer(), 5000);
-    if (!box || openThread() !== thread || composer() !== box || box.textContent.trim()) return;
+    const box = await waitFor(() => stillHere() && openThread() === thread && composer() !== previousBox && composer(), 5000);
+    if (!box || !stillHere() || openThread() !== thread || composer() !== box || box.textContent.trim()) return;
     box.focus();
     document.execCommand('insertText', false, draft);
     // Kept until it is really back.
