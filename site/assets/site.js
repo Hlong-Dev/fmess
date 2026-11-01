@@ -30,6 +30,7 @@ const TRANSLATIONS = {
     shot_zalo: "Cùng đoạn chat đó với theme Zalo của fMess",
     shot_whatsapp: "Cùng đoạn chat đó với theme WhatsApp của fMess",
     themes_label: "Giao diện",
+    theme_toggle: "Chế độ tối",
     shot_title: "Dùng Zalo, WhatsApp để chat Messenger, tại sao không?",
     shot_note: "Giao diện Zalo, WhatsApp nhưng thực chất là Messenger. Tha hồ tám giữa giờ làm, hoặc đơn giản là muốn thử điều gì đó mới mẻ.",
     mock_chats: "Đoạn chat",
@@ -138,6 +139,17 @@ const system = (() => {
   return null;
 })();
 
+// Light or dark: the visitor's pick, kept in fmess.theme (index.html applies
+// it before the page paints), or else the system's.
+const THEME_KEY = 'fmess.theme';
+function isDark() {
+  return (document.documentElement.dataset.theme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+}
+// The hero's screenshots come in each language, light and dark.
+function shotSrc(img) {
+  return `assets/shot-${img.dataset.shot}${document.documentElement.lang === 'vi' ? '-vi' : ''}${isDark() ? '-dark' : ''}.webp?v=2`;
+}
+
 // The language asked for in the link, then the one chosen here before, then
 // the browser's.
 const chosenLanguage = () => {
@@ -168,7 +180,7 @@ const setLanguage = (language) => {
       el.setAttribute(attribute, words[el.dataset[key]] ?? english.get(el)[id]);
     }
   }
-  for (const img of document.querySelectorAll('img[data-shot]')) img.src = `assets/shot-${img.dataset.shot}${language === 'vi' ? '-vi' : ''}.webp?v=2`;
+  for (const img of document.querySelectorAll('img[data-shot]')) img.src = shotSrc(img);
   // A page names its own title and description keys (data-title, data-description on body).
   const page = document.body.dataset;
   if (!english.has(document)) english.set(document, document.title);
@@ -215,6 +227,23 @@ for (const button of document.querySelectorAll('.lang button')) {
     track('language_change', { language: button.dataset.lang });
   });
 }
+
+const themeButton = document.querySelector('.theme-toggle');
+const showTheme = () => {
+  themeButton?.setAttribute('aria-pressed', String(isDark()));
+  for (const img of document.querySelectorAll('img[data-shot]')) img.src = shotSrc(img);
+};
+themeButton?.addEventListener('click', () => {
+  const next = isDark() ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  try {
+    localStorage.setItem(THEME_KEY, next);
+  } catch {}
+  showTheme();
+  track('theme_change', { theme: next });
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', showTheme);
+showTheme();
 
 // Analytics: page views, and which download and GitHub links get clicked.
 function track(name, params) {
