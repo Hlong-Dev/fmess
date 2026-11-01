@@ -129,6 +129,7 @@ const TRANSLATIONS = {
     cmp_sep: "Tháng 9/2026",
     cmp_sep2: "Tháng 9/2026",
     cmp_jan: "Tháng 1/2026, trước khi messenger.com đóng cửa",
+    cmp_why: "<b>Vì sao mã nguồn mở quan trọng ở đây.</b> App Messenger nào cũng giữ phiên đăng nhập Facebook của bạn và thấy mọi tin nhắn bạn gửi, nhận. Mã nguồn của fMess công khai, nên bạn hay bất kỳ ai cũng kiểm tra được app làm gì với chúng, và tự build lấy. Với app đóng mã nguồn, bạn chỉ có thể tin lời nhà phát triển.",
     cmp_also: "<b>fMess còn có:</b> thông báo kèm ảnh người gửi và trả lời nhanh, gọi điện trong chat mã hoá (macOS), giao diện Zalo và WhatsApp, kéo đổi độ rộng các khung, và phím tắt như app cũ.",
     cmp_note: "Lấy từ trang GitHub của từng dự án và bản tải về mới nhất cho Mac (Apple silicon), kiểm tra ngày 1/11/2026. Chữ ký theo kết quả kiểm tra của chính macOS (spctl).",
     faq_title: "Hỏi đáp",

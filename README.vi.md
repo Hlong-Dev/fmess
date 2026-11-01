@@ -91,6 +91,8 @@ Kiểm tra ngày 1/11/2026: trang GitHub của từng dự án, bản tải về
 | Ký số trên Mac | Có, Apple đã xác thực | Không | Có | Có, Apple đã xác thực | – |
 | Bản mới nhất | Tháng 11/2026 | Tháng 9/2026 | Tháng 1/2026, trước khi messenger.com đóng cửa | Tháng 9/2026 | – |
 
+Vì sao mã nguồn quan trọng: app Messenger nào cũng giữ phiên đăng nhập Facebook của bạn và thấy mọi tin nhắn. Mã nguồn của fMess công khai, ai cũng kiểm tra được app làm gì với chúng và tự build lấy; với app đóng mã nguồn, bạn chỉ có thể tin lời nhà phát triển.
+
 ## Quyền riêng tư
 
 fMess hiển thị facebook.com/messages bằng webview có sẵn của hệ điều hành. Bạn

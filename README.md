@@ -91,6 +91,8 @@ Checked on November 1, 2026: each project's GitHub page, its latest Mac download
 | Mac app signed | Yes, notarized | No | Yes | Yes, notarized | – |
 | Latest release | November 2026 | September 2026 | January 2026, before messenger.com closed | September 2026 | – |
 
+Why the source matters: a Messenger app holds your Facebook login and sees every message. fMess's code is public, so anyone can check what it does with them and build it themselves; a closed-source app has to be taken on its developer's word.
+
 ## Privacy
 
 fMess shows facebook.com/messages in your system's own webview. You sign in on
