@@ -78,6 +78,19 @@ On Windows and Linux, use Ctrl instead of ⌘.
 | `⌘+` / `⌘−` / `⌘0` | Zoom in / out / actual size |
 | `⌘,` | Settings |
 
+## Compared with other apps
+
+Checked on November 1, 2026: each project's GitHub page, its latest Mac download (Apple silicon) and macOS's own signature check.
+
+| | fMess | [Messenger Next](https://github.com/rozsazoltan/messenger) | [Caprine](https://github.com/sindresorhus/caprine) | [Ferdium](https://github.com/ferdium/ferdium-app) | A browser tab |
+|---|---|---|---|---|---|
+| Made for | Messenger | Messenger | Messenger | Many services in one app | All of Facebook, feed included |
+| Source code | Open (MIT) | Closed | Open (MIT) | Open (Apache 2.0) | – |
+| Mac download | 4.3 MB | 9.6 MB | 98 MB | 160 MB | – |
+| Built on | System webview (Tauri) | System webview (Tauri) | Electron | Electron | Your browser |
+| Mac app signed | Yes, notarized | No | Yes | Yes, notarized | – |
+| Latest release | November 2026 | September 2026 | January 2026, before messenger.com closed | September 2026 | – |
+
 ## Privacy
 
 fMess shows facebook.com/messages in your system's own webview. You sign in on

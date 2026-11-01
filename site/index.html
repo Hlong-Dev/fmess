@@ -30,8 +30,8 @@
   } catch {}
 </script>
 <script src="assets/vendor/motion-14.3.0.js" defer></script>
-<script src="assets/site.js?v=7" defer></script>
-<link rel="stylesheet" href="assets/site.css?v=7">
+<script src="assets/site.js?v=8" defer></script>
+<link rel="stylesheet" href="assets/site.css?v=8">
 <!-- What fMess is, for search engines and AI assistants (schema.org). -->
 <script type="application/ld+json">
 {
@@ -121,6 +121,7 @@
     <div class="links">
       <a href="#features" data-i18n="nav_features">Features</a>
       <a href="#notifications" data-i18n="nav_notifications">Notifications</a>
+      <a href="#compare" data-i18n="nav_compare">Compare</a>
       <a href="#shortcuts" data-i18n="nav_shortcuts">Shortcuts</a>
       <a href="#faq" data-i18n="nav_faq">FAQ</a>
       <a href="https://github.com/toanbku/fmess">GitHub</a>
@@ -250,7 +251,80 @@
   </div>
 </section>
 
-<section id="shortcuts" class="soft">
+<section id="compare" class="soft">
+  <div class="wrap">
+    <h2 data-i18n="cmp_title">How fMess <span class="ink-text">compares.</span></h2>
+    <p class="section-lead" data-i18n="cmp_lead">Other ways to get Messenger on your desktop, as of November 2026.</p>
+    <div class="compare-scroll">
+      <table class="compare">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="us">fMess</th>
+            <th><a href="https://github.com/rozsazoltan/messenger">Messenger Next</a></th>
+            <th><a href="https://github.com/sindresorhus/caprine">Caprine</a></th>
+            <th><a href="https://github.com/ferdium/ferdium-app">Ferdium</a></th>
+            <th data-i18n="cmp_tab">A browser tab</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th data-i18n="cmp_for">Made for</th>
+            <td class="us">Messenger</td>
+            <td>Messenger</td>
+            <td>Messenger</td>
+            <td data-i18n="cmp_many">Many services in one app</td>
+            <td data-i18n="cmp_all_fb">All of Facebook, feed included</td>
+          </tr>
+          <tr>
+            <th data-i18n="cmp_source">Source code</th>
+            <td class="us" data-i18n="cmp_open_mit">Open (MIT)</td>
+            <td data-i18n="cmp_closed">Closed</td>
+            <td data-i18n="cmp_open_mit2">Open (MIT)</td>
+            <td data-i18n="cmp_open_apache">Open (Apache 2.0)</td>
+            <td>–</td>
+          </tr>
+          <tr>
+            <th data-i18n="cmp_size">Mac download</th>
+            <td class="us">4.3 MB</td>
+            <td>9.6 MB</td>
+            <td>98 MB</td>
+            <td>160 MB</td>
+            <td>–</td>
+          </tr>
+          <tr>
+            <th data-i18n="cmp_engine">Built on</th>
+            <td class="us" data-i18n="cmp_webview">The system's webview</td>
+            <td data-i18n="cmp_webview2">The system's webview</td>
+            <td data-i18n="cmp_electron">Electron (a whole Chromium inside)</td>
+            <td data-i18n="cmp_electron2">Electron (a whole Chromium inside)</td>
+            <td data-i18n="cmp_browser">Your browser</td>
+          </tr>
+          <tr>
+            <th data-i18n="cmp_signed">Mac app signed</th>
+            <td class="us" data-i18n="cmp_notarized">Yes, notarized by Apple</td>
+            <td data-i18n="cmp_unsigned">No</td>
+            <td data-i18n="cmp_yes">Yes</td>
+            <td data-i18n="cmp_notarized2">Yes, notarized by Apple</td>
+            <td>–</td>
+          </tr>
+          <tr>
+            <th data-i18n="cmp_release">Latest release</th>
+            <td class="us" data-i18n="cmp_nov">November 2026</td>
+            <td data-i18n="cmp_sep">September 2026</td>
+            <td data-i18n="cmp_jan">January 2026, before messenger.com closed</td>
+            <td data-i18n="cmp_sep2">September 2026</td>
+            <td>–</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="compare-also" data-i18n="cmp_also"><b>Also in fMess:</b> notifications with the sender's photo and quick reply, calls in encrypted chats (macOS), Zalo and WhatsApp looks, panes you can resize, and the old app's shortcuts.</p>
+    <p class="compare-note" data-i18n="cmp_note">From each project's GitHub page and its latest Mac download (Apple silicon), checked on November 1, 2026. Signing as macOS's own check (spctl) reports it.</p>
+  </div>
+</section>
+
+<section id="shortcuts">
   <div class="wrap">
     <h2 data-i18n="shortcuts_title">Shortcuts your hands <span class="ink-text">already know.</span></h2>
     <p class="section-lead" data-i18n="shortcuts_lead">Ctrl on Windows and Linux.</p>
@@ -266,7 +340,7 @@
   </div>
 </section>
 
-<section id="download">
+<section id="download" class="soft">
   <div class="wrap">
     <h2 data-i18n="download_title">Get fMess. <span class="ink-text">It's free.</span></h2>
     <p class="section-lead version-line" id="latest-version" hidden></p>
@@ -305,7 +379,7 @@
   </div>
 </section>
 
-<section id="faq" class="soft">
+<section id="faq">
   <div class="wrap">
     <h2 data-i18n="faq_title">Questions</h2>
     <details open><summary data-i18n="q1">Is fMess made by Meta?</summary><p data-i18n="a1">No. It's an independent, open-source app that shows facebook.com/messages in its own window.</p></details>

@@ -78,6 +78,19 @@ Trên Windows và Linux, thay ⌘ bằng Ctrl.
 | `⌘+` / `⌘−` / `⌘0` | Phóng to / thu nhỏ / mặc định |
 | `⌘,` | Cài đặt |
 
+## So với app khác
+
+Kiểm tra ngày 1/11/2026: trang GitHub của từng dự án, bản tải về mới nhất cho Mac (Apple silicon) và kết quả kiểm tra chữ ký của chính macOS.
+
+| | fMess | [Messenger Next](https://github.com/rozsazoltan/messenger) | [Caprine](https://github.com/sindresorhus/caprine) | [Ferdium](https://github.com/ferdium/ferdium-app) | Mở trong trình duyệt |
+|---|---|---|---|---|---|
+| Làm cho | Messenger | Messenger | Messenger | Nhiều dịch vụ trong một app | Cả Facebook, có luôn feed |
+| Mã nguồn | Mở (MIT) | Đóng | Mở (MIT) | Mở (Apache 2.0) | – |
+| Dung lượng tải về (Mac) | 4.3 MB | 9.6 MB | 98 MB | 160 MB | – |
+| Nền tảng | Webview của hệ thống (Tauri) | Webview của hệ thống (Tauri) | Electron | Electron | Trình duyệt |
+| Ký số trên Mac | Có, Apple đã xác thực | Không | Có | Có, Apple đã xác thực | – |
+| Bản mới nhất | Tháng 11/2026 | Tháng 9/2026 | Tháng 1/2026, trước khi messenger.com đóng cửa | Tháng 9/2026 | – |
+
 ## Quyền riêng tư
 
 fMess hiển thị facebook.com/messages bằng webview có sẵn của hệ điều hành. Bạn
