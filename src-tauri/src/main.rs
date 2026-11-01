@@ -3,6 +3,7 @@
 
 mod about;
 mod badge;
+mod icon;
 mod links;
 mod menu;
 mod notify;
@@ -68,6 +69,7 @@ fn main() {
             handle.set_theme(settings::messenger_theme(settings.messenger_dark_mode.as_deref()));
             webview::create_main_window(handle, &settings)?;
             menu::install(handle)?;
+            icon::apply(handle);
             notify::route_clicks(handle)?;
             update::check_in_background(handle);
             #[cfg(debug_assertions)]

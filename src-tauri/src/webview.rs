@@ -10,7 +10,7 @@ use tauri::{
 };
 
 use crate::{
-    links,
+    icon, links,
     settings::{self, Settings},
     AUTOSTART_ARG, MAIN_WINDOW,
 };
@@ -97,8 +97,9 @@ pub fn open_settings_window<R: Runtime>(app: &AppHandle<R>) {
             .minimizable(false)
             .maximizable(false)
             .build();
-        if let Err(err) = result {
-            eprintln!("could not open settings: {err}");
+        match result {
+            Ok(window) => icon::apply_to(&window),
+            Err(err) => eprintln!("could not open settings: {err}"),
         }
     });
 }
@@ -250,7 +251,10 @@ fn open_popup<R: Runtime>(
         builder = builder.position(x, y);
     }
     match configure(builder, app, &label).build() {
-        Ok(window) => NewWindowResponse::Create { window },
+        Ok(window) => {
+            icon::apply_to(&window);
+            NewWindowResponse::Create { window }
+        }
         Err(err) => {
             eprintln!("could not open popup window: {err}");
             NewWindowResponse::Deny

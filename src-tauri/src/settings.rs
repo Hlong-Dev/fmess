@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, Runtime, Theme};
 use tauri_plugin_autostart::ManagerExt;
 
-use crate::{badge, themes, MAIN_WINDOW};
+use crate::{badge, icon, themes, MAIN_WINDOW};
 
 /// fMess's own preferences. Account settings (active status, sounds, dark
 /// mode) stay in Facebook's Preferences, which sync with the phone app.
@@ -134,6 +134,9 @@ pub fn update_settings<R: Runtime>(
         (current.messenger_dark_mode, current.pane_widths) = kept;
     })?;
 
+    if settings.theme != previous.theme {
+        icon::apply(&app);
+    }
     if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
         if settings.zoom != previous.zoom {
             let _ = window.set_zoom(settings.zoom);
@@ -261,6 +264,7 @@ pub fn page_settings_script<R: Runtime>(app: &AppHandle<R>, settings: &Settings)
 /// Goes back to Messenger's own look (the theme was removed).
 pub fn clear_theme<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     change(app, |settings| settings.theme = None)?;
+    icon::apply(app);
     if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
         let _ = window.eval(page_settings_script(app, &current(app)));
     }
