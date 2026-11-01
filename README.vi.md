@@ -76,7 +76,6 @@ Trên Windows và Linux, thay ⌘ bằng Ctrl.
 | `⌘⇧]` / `⌘⇧[`, `⌃Tab` / `⌃⇧Tab` | Đoạn chat kế tiếp / trước đó |
 | `⌘⇧H` | Về danh sách chat |
 | `⌘+` / `⌘−` / `⌘0` | Phóng to / thu nhỏ / mặc định |
-| `⌘⇧B` | Hiện hoặc ẩn thanh công cụ Facebook |
 | `⌘,` | Cài đặt |
 
 ## Quyền riêng tư

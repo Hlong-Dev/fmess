@@ -26,7 +26,7 @@ Key facts:
 - Just the chats: no Facebook feed, reels or top bar.
 - Block Typing: others don't see "typing…" while you write.
 - Messenger's settings in one place: sounds, Do Not Disturb and dark mode, synced with the phone app.
-- Keyboard shortcuts (Ctrl instead of ⌘ on Windows and Linux): ⌘K search chats, ⌘N new message, ⌘1–⌘9 open the 1st–9th chat, ⌃Tab next/previous chat, ⌘⇧H back to the chat list, ⌘+ / ⌘− / ⌘0 zoom, ⌘, settings, ⌘⇧B show Facebook's top bar.
+- Keyboard shortcuts (Ctrl instead of ⌘ on Windows and Linux): ⌘K search chats, ⌘N new message, ⌘1–⌘9 open the 1st–9th chat, ⌃Tab next/previous chat, ⌘⇧H back to the chat list, ⌘+ / ⌘− / ⌘0 zoom, ⌘, settings.
 - Zoomable photos: pinch or double-click in the photo viewer.
 - Unread badge on the Dock or taskbar, a tray icon, keeps running in the background.
 - Resizable panes: drag the edges of the chat list and the chat details; double-click an edge to reset.

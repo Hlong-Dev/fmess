@@ -76,7 +76,6 @@ On Windows and Linux, use Ctrl instead of ⌘.
 | `⌘⇧]` / `⌘⇧[`, `⌃Tab` / `⌃⇧Tab` | Next / previous chat |
 | `⌘⇧H` | Back to the chat list |
 | `⌘+` / `⌘−` / `⌘0` | Zoom in / out / actual size |
-| `⌘⇧B` | Show or hide Facebook's top bar |
 | `⌘,` | Settings |
 
 ## Privacy

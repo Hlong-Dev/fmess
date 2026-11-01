@@ -166,8 +166,21 @@ pub fn show_account_menu<R: Runtime>(
 
 /// Handles clicks from the tray menu, the macOS menu bar and the account menu.
 pub fn handle<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
+    run(app, event.id().as_ref());
+}
+
+/// The menu bar's shortcuts, which only macOS has: on Windows and Linux the
+/// page catches the same keys (Ctrl+, for Settings...) and asks for them here.
+#[tauri::command]
+pub fn menu_shortcut<R: Runtime>(app: AppHandle<R>, id: String) {
+    if [MESSAGES, SETTINGS, RELOAD, BACK, FORWARD, ZOOM_IN, ZOOM_OUT, ZOOM_RESET].contains(&id.as_str()) {
+        run(&app, &id);
+    }
+}
+
+fn run<R: Runtime>(app: &AppHandle<R>, id: &str) {
     let window = app.get_webview_window(MAIN_WINDOW);
-    match event.id().as_ref() {
+    match id {
         SHOW => show_main_window(app),
         MESSAGES => {
             show_main_window(app);
@@ -203,7 +216,7 @@ pub fn handle<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
         }
         // The shortcuts live in inject.js; the menu shows them and forwards to them.
         SEARCH | NEW_MESSAGE | NEXT_CHAT | PREVIOUS_CHAT => {
-            let call = match event.id().as_ref() {
+            let call = match id {
                 SEARCH => "'search'",
                 NEW_MESSAGE => "'newMessage'",
                 NEXT_CHAT => "'moveChat', 1",

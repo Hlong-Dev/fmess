@@ -87,7 +87,6 @@ const TRANSLATIONS = {
     key5: "Về danh sách chat",
     key6: "Phóng to / thu nhỏ / mặc định",
     key7: "Cài đặt",
-    key8: "Hiện thanh công cụ Facebook",
     download_title: "Tải fMess. <span class=\"ink-text\">Hoàn toàn miễn phí.</span>",
     mac_text: "macOS 12 trở lên",
     windows_text: "Windows 10 và 11",

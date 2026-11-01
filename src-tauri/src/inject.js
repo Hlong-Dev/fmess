@@ -1393,6 +1393,21 @@
   };
   // Also called from fMess's menu bar on macOS.
   window.__fmessShortcut = (name, arg) => onChatsPage() && shortcuts[name]?.(arg);
+  // The menu bar's shortcuts (menu.rs), by key, with Ctrl.
+  const MENU_KEYS = {
+    Comma: 'settings',
+    Equal: 'zoom-in',
+    NumpadAdd: 'zoom-in',
+    Minus: 'zoom-out',
+    NumpadSubtract: 'zoom-out',
+    Digit0: 'zoom-reset',
+    Numpad0: 'zoom-reset',
+    KeyR: 'reload',
+    BracketLeft: 'back',
+    BracketRight: 'forward',
+  };
+  // With Ctrl+Shift (Ctrl+Shift+= is Ctrl++ on most keyboards).
+  const MENU_SHIFT_KEYS = { KeyH: 'messages', Equal: 'zoom-in' };
   window.addEventListener(
     'keydown',
     (event) => {
@@ -1405,6 +1420,16 @@
       else if (primary && event.shiftKey && event.code === 'BracketRight') action = ['moveChat', 1];
       else if (primary && event.shiftKey && event.code === 'BracketLeft') action = ['moveChat', -1];
       else if (event.ctrlKey && event.code === 'Tab') action = ['moveChat', event.shiftKey ? -1 : 1];
+      if (!action && !isMac && event.ctrlKey && !event.altKey && !event.metaKey) {
+        // Windows and Linux have no menu bar, so its shortcuts start here.
+        const menu = event.shiftKey ? MENU_SHIFT_KEYS[event.code] : MENU_KEYS[event.code];
+        if (menu) {
+          event.preventDefault();
+          event.stopPropagation();
+          invoke('menu_shortcut', { id: menu }).catch(() => {});
+          return;
+        }
+      }
       if (!action || !onChatsPage()) return;
       event.preventDefault();
       event.stopPropagation();

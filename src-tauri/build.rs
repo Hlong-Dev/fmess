@@ -11,6 +11,7 @@ fn main() {
                 "get_settings",
                 "update_settings",
                 "show_account_menu",
+                "menu_shortcut",
                 "sync_messenger_prefs",
                 "set_pane_widths",
                 "set_messenger_pref",

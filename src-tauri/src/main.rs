@@ -57,6 +57,7 @@ fn main() {
             themes::remove_theme,
             webview::set_viewer_open,
             menu::show_account_menu,
+            menu::menu_shortcut,
         ])
         .on_menu_event(menu::handle)
         .setup(|app| {
