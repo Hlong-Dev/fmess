@@ -3,7 +3,8 @@
 // who can open another chat at any time. `node tests/notification-reply.mjs`
 import { readFileSync } from 'node:fs';
 
-const src = readFileSync(new URL('../src-tauri/src/inject.js', import.meta.url), 'utf8');
+// Windows checkouts may have CRLF line ends.
+const src = readFileSync(new URL('../src-tauri/src/inject.js', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 const waitFor = src.match(/  const waitFor = async[\s\S]*?\n  };\n/)[0];
 const reply = src.match(/  let replying = Promise\.resolve\(\);[\s\S]*?\n    return true;\n  };\n/)[0];
 
