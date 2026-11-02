@@ -10,6 +10,7 @@ use tauri::{
 };
 
 use crate::{
+    i18n::{self, pick, Lang},
     icon, links,
     settings::{self, Settings},
     AUTOSTART_ARG, MAIN_WINDOW,
@@ -90,8 +91,12 @@ pub fn open_settings_window<R: Runtime>(app: &AppHandle<R>) {
     // white window that can't be closed.
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
+        let lang = i18n::current(&app);
         let result = WebviewWindowBuilder::new(&app, SETTINGS_WINDOW, WebviewUrl::App("settings.html".into()))
-            .title("fMess Settings")
+            .title(settings_title(lang))
+            // So the page is in its language from the first frame, before it
+            // has asked for the settings.
+            .initialization_script(format!("window.__fmessLang = {};", serde_json::json!(lang)))
             .inner_size(640.0, 780.0)
             .min_inner_size(560.0, 560.0)
             .resizable(true)
@@ -103,6 +108,11 @@ pub fn open_settings_window<R: Runtime>(app: &AppHandle<R>) {
             Err(err) => eprintln!("could not open settings: {err}"),
         }
     });
+}
+
+/// The Settings window's title.
+pub fn settings_title(lang: Lang) -> &'static str {
+    pick(lang, "fMess Settings", "Cài đặt fMess")
 }
 
 /// Called by inject.js when the photo/video viewer opens or closes. The viewer
