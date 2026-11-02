@@ -74,12 +74,23 @@
     picture.removeAttribute(AVATAR);
   };
   const coverPicturesIn = (root) => {
+    if (!privacy.hideAvatars) return;
     for (const picture of root.querySelectorAll(`${AVATAR_PLACES} :is(img:not([src*="emoji.php"]), svg image):not([${AVATAR}])`)) coverPicture(picture);
   };
   // New pictures are looked at in the frame they arrive in; a picture not
-  // laid out yet (no size) waits for the next look.
+  // laid out yet (no size) waits for the next look. Facebook may also give a
+  // picture already looked at another source (or another person): it is
+  // looked at again, and a picture's own source kept for when the switch is
+  // turned off is the new one. (fMess's own initials don't count.)
   let pictureFrame = 0;
-  const avatarWatcher = new MutationObserver(() => {
+  const avatarWatcher = new MutationObserver((records) => {
+    for (const { type, target } of records) {
+      if (type !== 'attributes' || !target.hasAttribute?.(AVATAR)) continue;
+      const source = target.getAttribute('href') ?? target.getAttribute('src') ?? '';
+      if (source.startsWith('data:image/svg+xml')) continue;
+      if (target.hasAttribute('data-fmess-href')) target.setAttribute('data-fmess-href', source);
+      target.removeAttribute(AVATAR);
+    }
     pictureFrame ||= requestAnimationFrame(() => ((pictureFrame = 0), coverPicturesIn(document)));
   });
   let avatarTimer = 0;
@@ -89,8 +100,10 @@
     withRoot((root) => root.toggleAttribute(AVATARS_HIDDEN, hide));
     avatarWatcher.disconnect();
     clearInterval(avatarTimer);
+    cancelAnimationFrame(pictureFrame);
+    pictureFrame = 0;
     if (hide) {
-      withRoot((root) => avatarWatcher.observe(root, { childList: true, subtree: true }));
+      withRoot((root) => avatarWatcher.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'href'] }));
       avatarTimer = setInterval(() => coverPicturesIn(document), 1000);
       coverPicturesIn(document);
     } else for (const picture of document.querySelectorAll(`[${AVATAR}]`)) uncoverPicture(picture);
