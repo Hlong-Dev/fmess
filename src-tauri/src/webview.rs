@@ -25,7 +25,8 @@ const MESSAGES_URL: &str = "https://www.facebook.com/messages/";
 const INJECTED_SCRIPT: &str = include_str!(concat!(env!("OUT_DIR"), "/inject.js"));
 
 /// The app icon, shown on fMess's loading screen in place of Facebook's, unless
-/// one was chosen in Settings.
+/// one was chosen in Settings. The window's script is set as it opens, so a
+/// picture chosen later shows there from fMess's next start.
 const SPLASH_LOGO: &[u8] = include_bytes!("../icons/128x128@2x.png");
 const SPLASH_DARK: tauri::window::Color = tauri::window::Color(28, 28, 29, 255);
 const SPLASH_LIGHT: tauri::window::Color = tauri::window::Color(255, 255, 255, 255);

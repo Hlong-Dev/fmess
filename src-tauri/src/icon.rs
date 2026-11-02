@@ -6,7 +6,9 @@
 //! button (Windows, Linux) and in the tray; Finder, Start and the app
 //! launchers keep the icon it was installed with.
 
-use std::{borrow::Cow, fs, path::PathBuf};
+#[cfg(target_os = "macos")]
+use std::borrow::Cow;
+use std::{fs, path::PathBuf};
 
 use tauri::{image::Image, AppHandle, Manager, Runtime, WebviewWindow};
 use tauri_plugin_dialog::DialogExt;
@@ -16,8 +18,9 @@ use crate::{
     settings,
 };
 
-/// Larger than any icon needs to be.
-const MAX_CUSTOM_SIZE: usize = 5 * 1024 * 1024;
+/// Larger than any icon needs to be. The picture also goes into the script of
+/// every page load, for the loading screen, so it must stay small.
+const MAX_CUSTOM_SIZE: usize = 1024 * 1024;
 
 /// The icon at 256 (windows, tray) and 512 (Dock; none is the installed one).
 /// Themes the user adds, and Messenger's own look, get fMess's.
@@ -94,7 +97,7 @@ pub async fn choose_app_icon<R: Runtime>(app: AppHandle<R>) -> Result<bool, Stri
         Lang::Vi => format!("Không đọc được {}: {err}", path.display()),
     })?;
     if bytes.len() > MAX_CUSTOM_SIZE {
-        return Err(pick(lang, "An icon can be at most 5 MB.", "Biểu tượng chỉ được nặng tối đa 5 MB.").into());
+        return Err(pick(lang, "An icon can be at most 1 MB.", "Ảnh làm biểu tượng chỉ được nặng tối đa 1 MB.").into());
     }
     Image::from_bytes(&bytes).map_err(|_| {
         pick(lang, "This file isn't a .png or .ico picture fMess can use.", "fMess không dùng được file này làm biểu tượng (.png hoặc .ico).")
