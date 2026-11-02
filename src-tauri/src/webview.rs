@@ -181,6 +181,10 @@ fn configure<'a, R: Runtime, M: Manager<R>>(
         .on_new_window(move |url, features| open_popup(&popup_app, url, features))
         // Without a download handler, macOS cancels every download.
         .on_download(|_, _| true)
+        // Tauri takes files dropped on the window for itself (as its own
+        // events) and keeps them from the page, so a file or screenshot
+        // dragged into a chat did nothing; Messenger takes them as in a browser.
+        .disable_drag_drop_handler()
         // Hidden windows must keep receiving messages (macOS 14+ only).
         .background_throttling(BackgroundThrottlingPolicy::Disabled);
     match user_agent() {
