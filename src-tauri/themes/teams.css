@@ -1217,8 +1217,9 @@ html[data-fmess-chats] [role="main"] [role="toolbar"] > [role="presentation"] > 
 /* Messenger keeps a message's actions while its buttons have the focus
    (after a reaction, say), which left Teams' big card standing on messages
    the pointer had left: the card shows only on the message under the
-   pointer, or while one of its menus is open. */
-html[data-fmess-chats] [role="main"] [data-scope="messages_table"]:not(:hover):not(:has([aria-expanded="true"])) [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"]) {
+   pointer, while one of its menus is open, or while a key (Tab) has put the
+   focus on one of its buttons. */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"]:not(:hover):not(:has([aria-expanded="true"], :focus-visible)) [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"]) {
   display: none !important;
 }
 @container style(--tm-own: 1) {
