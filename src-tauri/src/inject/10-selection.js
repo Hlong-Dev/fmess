@@ -59,6 +59,36 @@
       field.spellcheck = true;
     }
   }
+  // Copy Image in WebKit's menu leaves the picture along with its address, as
+  // text and as an <img> in HTML, and Messenger's box then took the address
+  // instead of the picture. Such a paste reaches Messenger with the picture
+  // alone, as from Chrome; other pastes are left as they are.
+  const repasted = new WeakSet();
+  const onlyItsAddress = (data) => {
+    const text = data.getData('text/plain').trim();
+    const html = data.getData('text/html');
+    if (!text && !html) return false;
+    if (text && !/^(https?|blob|data):\S+$/.test(text)) return false;
+    if (!html) return true;
+    const body = new DOMParser().parseFromString(html, 'text/html').body;
+    return !body.textContent.trim() && body.querySelector('img') !== null;
+  };
+  document.addEventListener(
+    'paste',
+    (event) => {
+      const data = event.clipboardData;
+      if (repasted.has(event) || !data?.files.length || !(event.target instanceof Element) || !event.target.closest(FIELDS)) return;
+      if (![...data.files].every((file) => file.type.startsWith('image/')) || !onlyItsAddress(data)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const pictures = new DataTransfer();
+      for (const file of data.files) pictures.items.add(file);
+      const again = new ClipboardEvent('paste', { clipboardData: pictures, bubbles: true, cancelable: true });
+      repasted.add(again);
+      event.target.dispatchEvent(again);
+    },
+    true,
+  );
   if (titleBarInset) {
     const dragStrip = document.createElement('div');
     dragStrip.setAttribute('data-tauri-drag-region', '');
