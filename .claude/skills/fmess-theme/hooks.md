@@ -119,8 +119,12 @@ negative `top` counts from the bottom (top = bottom + top − size).
 }
 ```
 
-- While the pointer is over one, fMess sets `--fmess-hover-left` / `--fmess-hover-top` and
-  `cursor: pointer` on the nav. Paint a highlight at that position (default off-screen):
+- While the pointer is over one, fMess sets `--fmess-hover-left` / `--fmess-hover-top`,
+  `data-fmess-hover="<name>"` and `cursor: pointer` on the nav (all removed when none is
+  lit). The name lets a theme label the lit button (Teams' tooltips: the nav's free
+  pseudo-element with `content: var(--label)`, the label set per
+  `[data-fmess-hover="…"]`) or treat one differently (Teams keeps the open app's slot
+  clear). Paint a highlight at that position (default off-screen):
   `radial-gradient(…) var(--fmess-hover-left, -100px) var(--fmess-hover-top, -100px) / 40px 40px no-repeat`.
 - Clicks: **only `account` and `settings` do anything.** `account` opens fMess's native
   account menu (your name, Settings…, Log Out) to the right of the button. `settings` opens
@@ -142,8 +146,8 @@ html[data-fmess-chats]:not([data-fmess-media]) {
 }
 ```
 
-- Hover: fMess sets `--fmess-window-hover-left` / `--fmess-window-hover-top` (window px) and
-  `cursor: pointer` on `:root`. Draw the highlight in a fixed pseudo-element at those
+- Hover: fMess sets `--fmess-window-hover-left` / `--fmess-window-hover-top` (window px),
+  `data-fmess-window-hover="<name>"` and `cursor: pointer` on `:root`. Draw the highlight in a fixed pseudo-element at those
   positions (default off-screen).
 - Clicks: `account` opens fMess's native account menu **under** the button (kept inside the
   window), `settings` opens Settings, `list` folds the chat list away and back (below);

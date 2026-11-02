@@ -1,9 +1,10 @@
   // A theme can draw buttons on the chat list (the Zalo look's bar down its
   // left side) and list them in --fmess-buttons on the list: "name left top
   // size" each, comma-separated, a negative top counting from the bottom.
-  // fMess lights the one under the pointer (--fmess-hover-left/-top on the
-  // list) and runs those it knows: "account" opens the account menu, as the
-  // account button does, and "settings" opens fMess's Settings.
+  // fMess lights the one under the pointer (--fmess-hover-left/-top and
+  // data-fmess-hover="<name>" on the list, for a theme's label) and runs
+  // those it knows: "account" opens the account menu, as the account button
+  // does, and "settings" opens fMess's Settings.
   const themeButtonAt = (list, x, y) => {
     const box = list.getBoundingClientRect();
     for (const spec of getComputedStyle(list).getPropertyValue('--fmess-buttons').split(',')) {
@@ -20,7 +21,7 @@
     'mousemove',
     (event) => {
       const list = event.target instanceof Element && event.target.closest('[role="navigation"]');
-      const unlight = (el) => (el.style.removeProperty('--fmess-hover-top'), el.style.removeProperty('cursor'));
+      const unlight = (el) => (el.style.removeProperty('--fmess-hover-top'), el.style.removeProperty('cursor'), el.removeAttribute('data-fmess-hover'));
       if (hoveredList && hoveredList !== list) unlight(hoveredList);
       hoveredList = list || null;
       if (!list) return;
@@ -30,6 +31,7 @@
       list.style.setProperty('--fmess-hover-left', `${button.left - box.left}px`);
       list.style.setProperty('--fmess-hover-top', `${button.top - box.top}px`);
       list.style.cursor = 'pointer';
+      if (list.getAttribute('data-fmess-hover') !== button.name) list.setAttribute('data-fmess-hover', button.name);
     },
     { passive: true },
   );
@@ -52,12 +54,12 @@
   // buttons on :root, "name left top size" in px from the window's top left,
   // a negative left counting from the right edge and a negative top from the
   // bottom (left = width + left - size). fMess lights the one under the
-  // pointer (--fmess-window-hover-left/-top on :root) and runs "account" and
-  // "settings" as above; the account menu opens under the button, kept
-  // inside the window (about 200px wide). "list" folds the chat list away
-  // and back: data-fmess-list-collapsed on <html>, kept for next time, for
-  // the theme to fold it. A press there doesn't drag the window, though the
-  // title strip is under it.
+  // pointer (--fmess-window-hover-left/-top and data-fmess-window-hover on
+  // :root) and runs "account" and "settings" as above; the account menu
+  // opens under the button, kept inside the window (about 200px wide).
+  // "list" folds the chat list away and back: data-fmess-list-collapsed on
+  // <html>, kept for next time, for the theme to fold it. A press there
+  // doesn't drag the window, though the title strip is under it.
   // The list is read again at most once a second, not on every move.
   const LIST_COLLAPSED = 'data-fmess-list-collapsed';
   const LIST_COLLAPSED_KEY = 'fmess.listCollapsed';
@@ -94,9 +96,10 @@
       if (lit === litWindowButton) return;
       litWindowButton = lit;
       const root = document.documentElement;
-      if (!button) return (root.style.removeProperty('--fmess-window-hover-top'), root.style.removeProperty('cursor'));
+      if (!button) return (root.style.removeProperty('--fmess-window-hover-top'), root.style.removeProperty('cursor'), root.removeAttribute('data-fmess-window-hover'));
       root.style.setProperty('--fmess-window-hover-left', `${button.left}px`);
       root.style.setProperty('--fmess-window-hover-top', `${button.top}px`);
+      root.setAttribute('data-fmess-window-hover', button.name);
       root.style.cursor = 'pointer';
     },
     { passive: true },
