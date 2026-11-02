@@ -147,23 +147,21 @@ html[data-fmess-chats]:not([data-fmess-media]) {
 ```
 
 - Hover: fMess sets `--fmess-window-hover-left` / `--fmess-window-hover-top` (window px),
-  `data-fmess-window-hover="<name>"` and `cursor: pointer` on `:root`. Draw the highlight in a fixed pseudo-element at those
-  positions (default off-screen).
+  `data-fmess-window-hover="<name>"` and `cursor: pointer` on `:root`. Draw the highlight
+  in a fixed pseudo-element at those positions (default off-screen).
 - Clicks: `account` opens fMess's native account menu **under** the button (kept inside the
-  window), `settings` opens Settings, `list` folds the chat list away and back (below);
-  other names only light up. A press on one never starts a window drag, even over the macOS
-  drag strip.
-- `list` toggles `data-fmess-list-collapsed` on `<html>`, remembered in localStorage for
-  the next start. fMess only keeps the flag; the theme does the folding, e.g.
-  `html[data-fmess-list-collapsed] [data-fmess-list]:not(:focus-within) { flex: 0 0 68px
-  !important; width: 68px !important; min-width: 68px !important; max-width: 68px
-  !important; overflow: hidden !important }` (more specific than fMess's pane-width rule,
-  so the user's width comes back when it unfolds), and hide `.fmess-pane-edge` meanwhile.
-  `:not(:focus-within)` lets the list open again while its search field or a row has the
-  focus. A rail drawn in the list's padding (pseudo-elements) stays.
+  window), `settings` opens Settings, `sidebar` folds the theme's sidebar away and back
+  (below); other names only light up. A press on one never starts a window drag, even over
+  the macOS drag strip.
+- `sidebar` toggles `data-fmess-sidebar-collapsed` on `<html>`, remembered in localStorage
+  (`fmess.sidebarCollapsed`) for the next start. fMess only keeps the flag; the theme does
+  the folding. Teams' sidebar button hides the **app bar**, not the chat list: folded, the
+  Teams theme drops the rail drawn in the list's padding (`padding-left: 0`, the
+  pseudo-elements `display: none`, `--fmess-buttons: none` so nothing there lights or
+  clicks, the unread badge hidden) and the list starts at the window's edge.
 - fMess reads the list at most once a second.
-- Draw the pictures in fixed pseudo-elements with `pointer-events: none`. `body::before` is
-  free; `html::before` is the strip/band.
+- Draw the pictures in fixed pseudo-elements with `pointer-events: none`: `body::before` and
+  `body::after` (the Teams theme uses both), `html::before` is the strip/band.
 
 ## A search box of the theme's own: `--fmess-search-box: 1`
 

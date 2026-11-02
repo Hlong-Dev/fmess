@@ -200,6 +200,7 @@ html[data-fmess-chats] :has(> [data-fmess-list]) {
    bar). */
 :root {
   --tm-band: 48px;
+  --tm-rail: 68px;
   --tm-search-w: min(468px, calc(100vw - 254px));
 }
 html[data-fmess-chats],
@@ -227,7 +228,7 @@ html[data-fmess-chats]::before {
     var(--tm-window);
 }
 html[data-fmess-chats]:not([data-fmess-media]) {
-  --fmess-window-buttons: settings -53 8 32, account -12 8 32, list 108 8 32;
+  --fmess-window-buttons: settings -53 8 32, account -12 8 32, sidebar 108 8 32;
 }
 /* "…" and your picture with Teams' "available" dot, in one masked layer. */
 html[data-fmess-chats] body::before {
@@ -251,7 +252,7 @@ html[data-fmess-chats] body::before {
     radial-gradient(circle 6px at calc(100% - 19px) 33px, #000 96%, transparent 100%);
 }
 /* Teams' sidebar button in the band, right of the window buttons: it folds
-   the chat list away and back (fMess's "list" window button). */
+   the app bar away and back (fMess's "sidebar" window button). */
 html[data-fmess-chats] body::after {
   content: "";
   position: fixed;
@@ -266,7 +267,7 @@ html[data-fmess-chats] body::after {
     var(--tm-fg3);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6Zm7 9h6a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H9v11ZM6.59 7a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09Zm0 3a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09ZM7 12.5a.5.5 0 0 0-.5-.5H4.41a.5.5 0 0 0 .09 1h2.09a.5.5 0 0 0 .41-.5Z'/%3E%3C/svg%3E") 114px 14px / 20px 20px no-repeat;
 }
-html[data-fmess-chats][data-fmess-list-collapsed] body::after {
+html[data-fmess-chats][data-fmess-sidebar-collapsed] body::after {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.59 7a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09Zm0 3a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09Zm0 3a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09ZM5 3a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H5Zm10 12H9V4h6a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2ZM5 4h3v11H5a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2Z'/%3E%3C/svg%3E");
 }
 /* The strip fMess drags the window by (macOS) covers the whole band, with
@@ -275,9 +276,9 @@ html[data-fmess-chats]:not([data-fmess-media]) [data-tauri-drag-region] {
   height: var(--tm-band) !important;
   clip-path: polygon(evenodd,
     0 0, 100% 0, 100% 100%, 0 100%, 0 0,
-    calc(50% + 34px - var(--tm-search-w) / 2) 8px, calc(50% + 34px + var(--tm-search-w) / 2) 8px,
-    calc(50% + 34px + var(--tm-search-w) / 2) 40px, calc(50% + 34px - var(--tm-search-w) / 2) 40px,
-    calc(50% + 34px - var(--tm-search-w) / 2) 8px);
+    calc(50% + var(--tm-rail) / 2 - var(--tm-search-w) / 2) 8px, calc(50% + var(--tm-rail) / 2 + var(--tm-search-w) / 2) 8px,
+    calc(50% + var(--tm-rail) / 2 + var(--tm-search-w) / 2) 40px, calc(50% + var(--tm-rail) / 2 - var(--tm-search-w) / 2) 40px,
+    calc(50% + var(--tm-rail) / 2 - var(--tm-search-w) / 2) 8px);
 }
 
 /* The app bar down the left (68px), under the band, with Teams' apps as
@@ -370,25 +371,20 @@ html[data-fmess-chats] [data-fmess-list]::after {
   -webkit-mask-origin: border-box;
   -webkit-mask-clip: border-box, border-box, border-box, border-box, border-box, border-box, border-box, border-box, content-box;
 }
-/* Folded (the sidebar button in the band): only the app bar stays, and the
-   chat takes the room. The list keeps its own width for when it comes back,
-   and comes back while it has the focus (the search box, the keyboard).
-   Folded, its content keeps a width, hidden by a clip: fMess counts unread
-   chats (the badge on Chat) from rows it can see laid out. */
-html[data-fmess-chats][data-fmess-list-collapsed] [data-fmess-list]:not(:focus-within) {
-  flex: 0 0 68px !important;
-  width: 68px !important;
-  min-width: 68px !important;
-  max-width: 68px !important;
+/* Folded (Teams' sidebar button in the band): the app bar goes, as in
+   Teams: no rail, logo, icons, tooltips or buttons there; the chat list
+   starts at the window's edge, and the search box centres on the window. */
+html[data-fmess-chats][data-fmess-sidebar-collapsed] {
+  --tm-rail: 0px;
 }
-html[data-fmess-chats][data-fmess-list-collapsed] [data-fmess-list]:not(:focus-within) > div:not(.fmess-pane-edge) {
-  flex: none !important;
-  width: 280px !important;
+html[data-fmess-chats][data-fmess-sidebar-collapsed] [data-fmess-list] {
+  padding-left: 0 !important;
   min-width: 280px !important;
-  clip-path: inset(0 100% 0 0);
-  pointer-events: none !important;
+  background: var(--tm-window) !important;
+  --fmess-buttons: none;
 }
-html[data-fmess-chats][data-fmess-list-collapsed] [data-fmess-list] .fmess-pane-edge {
+html[data-fmess-chats][data-fmess-sidebar-collapsed] [data-fmess-list]::before,
+html[data-fmess-chats][data-fmess-sidebar-collapsed] [data-fmess-list]::after {
   display: none !important;
 }
 /* Unread chats: Teams' count on the Chat app. UNMEASURED: no badge was on
@@ -409,6 +405,9 @@ html[data-fmess-chats][data-fmess-unread]::after {
   font: 600 10px/16px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   text-align: center;
   pointer-events: none;
+}
+html[data-fmess-chats][data-fmess-sidebar-collapsed][data-fmess-unread]::after {
+  display: none !important;
 }
 /* No band, bar or badge over the photo viewer, which has a title bar of
    its own; and no grey window showing at its edge. */
@@ -518,7 +517,7 @@ html[data-fmess-chats]:not([data-fmess-media]) {
   position: fixed;
   z-index: 2147483000;
   top: 8px;
-  left: calc(50vw + 34px - var(--tm-search-w) / 2);
+  left: calc(50vw + var(--tm-rail) / 2 - var(--tm-search-w) / 2);
   width: var(--tm-search-w);
   height: 32px;
   box-sizing: border-box;
@@ -793,6 +792,11 @@ html[data-fmess-chats] [data-fmess-list] [role="row"]:hover {
 }
 @container style(--tm-row-hovered: 1) {
   span:has(> span > span > span > abbr) {
+    visibility: hidden !important;
+  }
+  /* The row's right-hand marks (the "seen by" pictures, the unread dot):
+     the third box of the row's line and after. The "…" takes their place. */
+  a[role="link"] > div > div > div:nth-child(n + 3) {
     visibility: hidden !important;
   }
 }
