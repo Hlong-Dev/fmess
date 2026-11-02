@@ -567,9 +567,10 @@ html[data-fmess-chats] [data-fmess-list] [role="tablist"] {
   padding: 0 !important;
 }
 /* The pills' row: 8px above and below, a line (Teams' 41px), the pills
-   32px in, under the title. */
+   32px in, under the title; the chats start 6px under the line, as Teams'
+   first section does. */
 html[data-fmess-chats] [data-fmess-list] div:has(> div > div > [role="tablist"]) {
-  margin: 0 !important;
+  margin: 0 0 6px !important;
   padding: 8px 0 8px 32px !important;
   border-bottom: 1px solid var(--tm-stroke-subtle) !important;
 }
