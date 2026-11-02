@@ -105,9 +105,9 @@ can't**. Start from this (details in hooks.md):
 
 | Target region | Hook | Notes |
 |---|---|---|
-| Title bar / window strip | `html::before`, height `var(--fmess-title-bar)` | 28px macOS, 0 on Windows/Linux; `pointer-events: none` |
+| Title bar / window strip | `html::before`, height `var(--fmess-title-bar)`; a taller band by raising `--header-height` in the chats | 28px macOS, 0 on Windows/Linux; `pointer-events: none`. Real controls in it: Messenger's search field moved there, `--fmess-window-buttons` (hooks.md) |
 | App rail with app icons | `[role="navigation"]` `padding-left`, `::before` (colour, current item, hover), `::after` (masked icons + avatar) | items are pictures; only `account`/`settings` in `--fmess-buttons` act |
-| Avatar + account/settings card | `--fmess-avatar`, `account` button, or `#fmess-account` | opens fMess's **native** menu (name, Settings…, Log Out). The target's card can't be copied. |
+| Avatar + account/settings card | `--fmess-avatar`, `account` in `--fmess-buttons` (on the list) or `--fmess-window-buttons` (anywhere), or `#fmess-account` | opens fMess's **native** menu (name, Settings…, Log Out). The target's card can't be copied. |
 | Unread count | `html[data-fmess-unread]::after` | `content: attr(data-fmess-unread)` |
 | List title / logo | `[role="navigation"] h1 a` masked with a wordmark | |
 | New chat, list ⋯ | `a[href="/messages/new/"]`, `[data-fmess-ui="list-menu"]` | svg mask |
