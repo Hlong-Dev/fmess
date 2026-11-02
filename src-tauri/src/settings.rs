@@ -28,6 +28,8 @@ pub struct Settings {
     pub mac_calls: bool,
     /// Don't let people see that you're typing.
     pub block_typing: bool,
+    /// Show initials in place of people's pictures.
+    pub hide_avatars: bool,
     /// Messenger's dark mode as last reported (ENABLED, DISABLED, USE_SYSTEM),
     /// so fMess starts in the right colours before the page has loaded.
     pub messenger_dark_mode: Option<String>,
@@ -60,6 +62,7 @@ impl Default for Settings {
             zoom: 1.0,
             mac_calls: true,
             block_typing: false,
+            hide_avatars: false,
             messenger_dark_mode: None,
             theme: None,
             theme_icon: true,
@@ -147,7 +150,10 @@ pub fn update_settings<R: Runtime>(
         if settings.badge != previous.badge {
             badge::refresh(&window);
         }
-        if settings.block_typing != previous.block_typing || settings.theme != previous.theme {
+        if settings.block_typing != previous.block_typing
+            || settings.hide_avatars != previous.hide_avatars
+            || settings.theme != previous.theme
+        {
             let _ = window.eval(page_settings_script(&app, &settings));
         }
         if settings.mac_calls != previous.mac_calls {
@@ -253,6 +259,7 @@ pub fn page_settings<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> Str
     serde_json::json!({
         "macCalls": settings.mac_calls,
         "blockTyping": settings.block_typing,
+        "hideAvatars": settings.hide_avatars,
         "theme": themes::for_page(app, settings.theme.as_deref()),
         "paneWidths": settings.pane_widths,
     })

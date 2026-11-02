@@ -68,12 +68,14 @@
   const within = (promise, ms) => Promise.race([promise, new Promise((resolve) => setTimeout(() => resolve(null), ms))]);
   const sendNotification = async (notification) => {
     const details = await within(messageDetails.get(String(notification.tag)) ?? Promise.resolve(null), 2000);
+    // With people's pictures hidden (Privacy), notifications go without them.
+    const pictures = !privacy.hideAvatars;
     const [icon, image, senderPicture, groupPicture] = await within(
       Promise.all([
-        details ? null : pictureData(notification.icon),
+        details || !pictures ? null : pictureData(notification.icon),
         pictureData(notification.image),
-        details && pictureData(details.senderPicture),
-        details?.group && pictureData(details.group.picture),
+        details && pictures ? pictureData(details.senderPicture) : null,
+        details?.group && pictures ? pictureData(details.group.picture) : null,
       ]),
       3000,
     ) ?? [];

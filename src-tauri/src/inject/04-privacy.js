@@ -9,7 +9,93 @@
   // answer and nothing is retried: typing (type 4, label "3") says
   // is_typing 0. Typing in encrypted chats goes to Messenger's worker instead
   // (sendChatStateFromComposer) and is edited on its way there.
-  const privacy = { blockTyping: Boolean(settings.blockTyping) };
+  const privacy = { blockTyping: Boolean(settings.blockTyping), hideAvatars: false };
+
+  // Privacy (fMess Settings): people's pictures as their initials, for
+  // screens others can see. A person's picture in the chat list, the chat's
+  // header, beside messages and in the details is drawn as a circle with the
+  // first letter of the name, its colour following the name; one whose name
+  // fMess can't tell (the small "seen" pictures) as a grey circle. Pictures
+  // there are hidden until fMess has looked at them, so a photo never shows
+  // for a moment; those that aren't people's (photos sent) are let through.
+  const AVATARS_HIDDEN = 'data-fmess-hide-avatars';
+  const AVATAR = 'data-fmess-avatar';
+  const AVATAR_PLACES = ':is([role="navigation"] [role="row"], [data-fmess-ui="chat-header"], [role="log"], [data-fmess-ui="details"])';
+  const AVATAR_COLOURS = ['#c4314b', '#e3008c', '#8764b8', '#4f6bed', '#0078d4', '#038387', '#498205', '#ca5010'];
+  const avatarStyle = document.createElement('style');
+  avatarStyle.textContent = `
+    html[${AVATARS_HIDDEN}] ${AVATAR_PLACES} :is(img:not([src*="emoji.php"]), svg image):not([${AVATAR}]) { visibility: hidden !important; }
+  `;
+  withRoot((root) => root.append(avatarStyle));
+  const initialPictures = new Map();
+  const initialPicture = (name) => {
+    const letter = (name.match(/[\p{L}\p{N}]/u)?.[0] ?? '').toLocaleUpperCase();
+    const colour = letter ? AVATAR_COLOURS[[...name].reduce((hash, c) => (hash * 31 + c.codePointAt(0)) >>> 0, 7) % AVATAR_COLOURS.length] : '#bcc0c4';
+    const key = `${letter}${colour}`;
+    if (!initialPictures.has(key)) {
+      const text = letter
+        ? `<text x='20' y='20' dy='.35em' text-anchor='middle' font-family='-apple-system,system-ui,sans-serif' font-size='18' font-weight='600' fill='white'>${letter}</text>`
+        : '';
+      const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='${colour}'/>${text}</svg>`;
+      initialPictures.set(key, `data:image/svg+xml,${encodeURIComponent(svg)}`);
+    }
+    return initialPictures.get(key);
+  };
+  // The name a picture stands for, from where it is; '' for a grey circle,
+  // null for a picture that isn't a person's.
+  const pictureName = (picture) => {
+    const box = picture.getBoundingClientRect();
+    if (!box.width || Math.abs(box.width - box.height) > 2 || box.width > 100) return box.width ? null : undefined;
+    const row = picture.closest('[role="navigation"] [role="row"]');
+    if (row) return picture.tagName === 'IMG' ? row.querySelector('a[role="link"] span[dir="auto"]')?.textContent ?? '' : picture.closest('svg')?.getAttribute('aria-label') ?? '';
+    const header = picture.closest('[data-fmess-ui="chat-header"]');
+    if (header) return header.querySelector('h1, h2, h3')?.textContent ?? '';
+    if (picture.closest('[role="log"]')) return box.width > 40 ? null : box.width > 20 ? picture.getAttribute('alt') ?? '' : '';
+    return picture.closest('svg')?.getAttribute('aria-label') ?? picture.getAttribute('alt') ?? '';
+  };
+  const coverPicture = (picture) => {
+    const name = pictureName(picture);
+    if (name === undefined) return;
+    if (name === null) return picture.setAttribute(AVATAR, 'none');
+    const url = initialPicture(name);
+    if (picture.tagName === 'IMG') picture.style.setProperty('content', `url("${url}")`, 'important');
+    else {
+      if (!picture.hasAttribute('data-fmess-href')) picture.setAttribute('data-fmess-href', picture.getAttribute('href') ?? picture.getAttribute('xlink:href') ?? '');
+      picture.setAttribute('href', url);
+    }
+    picture.setAttribute(AVATAR, 'initial');
+  };
+  const uncoverPicture = (picture) => {
+    if (picture.tagName === 'IMG') picture.style.removeProperty('content');
+    else if (picture.hasAttribute('data-fmess-href')) {
+      picture.setAttribute('href', picture.getAttribute('data-fmess-href'));
+      picture.removeAttribute('data-fmess-href');
+    }
+    picture.removeAttribute(AVATAR);
+  };
+  const coverPicturesIn = (root) => {
+    for (const picture of root.querySelectorAll(`${AVATAR_PLACES} :is(img:not([src*="emoji.php"]), svg image):not([${AVATAR}])`)) coverPicture(picture);
+  };
+  // New pictures are looked at in the frame they arrive in; a picture not
+  // laid out yet (no size) waits for the next look.
+  let pictureFrame = 0;
+  const avatarWatcher = new MutationObserver(() => {
+    pictureFrame ||= requestAnimationFrame(() => ((pictureFrame = 0), coverPicturesIn(document)));
+  });
+  let avatarTimer = 0;
+  const setHideAvatars = (hide) => {
+    if (hide === privacy.hideAvatars) return;
+    privacy.hideAvatars = hide;
+    withRoot((root) => root.toggleAttribute(AVATARS_HIDDEN, hide));
+    avatarWatcher.disconnect();
+    clearInterval(avatarTimer);
+    if (hide) {
+      withRoot((root) => avatarWatcher.observe(root, { childList: true, subtree: true }));
+      avatarTimer = setInterval(() => coverPicturesIn(document), 1000);
+      coverPicturesIn(document);
+    } else for (const picture of document.querySelectorAll(`[${AVATAR}]`)) uncoverPicture(picture);
+  };
+  setHideAvatars(Boolean(settings.hideAvatars));
 
   const currentUserId = () => {
     try {
