@@ -712,6 +712,10 @@
       --messenger-card-box-shadow: none !important;
     }
     html[${CHATS}] [role="main"] { box-shadow: -1px 0 0 var(--divider, var(--card-border-color)); }
+    /* The strip under the window buttons is the page's own background,
+       Facebook's grey, over panes that are white (or dark): the panes'
+       colour instead, so the top reads as one bar. */
+    html[${CHATS}] body { background: var(--surface-background) !important; }
     /* The same divider before the chat's details (the pane beside the
        messages, with the Search button). */
     html[${CHATS}] [role="main"] [data-fmess-ui="details"] {
