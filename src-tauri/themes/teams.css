@@ -1200,6 +1200,19 @@ html[data-fmess-chats] [role="main"] [role="toolbar"] > [role="presentation"] > 
   border-radius: 8px !important;
   background: var(--tm-card) !important;
   filter: drop-shadow(0 0 2px var(--tm-ambient)) drop-shadow(0 8px 16px var(--tm-key));
+  /* As in Teams, the card comes a moment after the pointer and fades in,
+     so passing over messages doesn't flash it. */
+  animation: tm-card-in 0.16s ease-out 0.4s both;
+}
+@keyframes tm-card-in {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
 }
 /* Messenger keeps a message's actions while its buttons have the focus
    (after a reaction, say), which left Teams' big card standing on messages
