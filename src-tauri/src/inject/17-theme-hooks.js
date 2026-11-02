@@ -121,6 +121,7 @@
       box = document.createElement('div');
       box.id = SEARCH_BOX;
       box.setAttribute('role', 'button');
+      box.tabIndex = 0;
       // Keeps the focus where it is until the click moves it to the field.
       box.addEventListener('mousedown', (event) => event.preventDefault());
       box.addEventListener('click', () => shortcuts.search());
@@ -160,7 +161,10 @@
   const quickReactionList = () => {
     if (performance.now() - quickReactions.at > 1000) {
       const value = getComputedStyle(document.documentElement).getPropertyValue('--fmess-quick-reactions');
-      quickReactions = { at: performance.now(), list: value.trim().toLowerCase().split(/\s+/).filter((emoji) => /^[0-9a-f_]+$/.test(emoji)) };
+      const list = value.trim().toLowerCase().split(/\s+/).filter((emoji) => /^[0-9a-f_]+$/.test(emoji));
+      // Another theme (or none): the buttons added for the last one go.
+      if (list.join() !== quickReactions.list.join()) for (const group of document.querySelectorAll('.fmess-quick-reactions')) group.remove();
+      quickReactions = { at: performance.now(), list };
     }
     return quickReactions.list;
   };
@@ -222,6 +226,19 @@
     if (choice) choice.click();
     else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true }));
   };
+  // The buttons fMess adds (the search box, quick reactions) take Enter and
+  // Space as buttons do.
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const button = event.target instanceof Element && event.target.closest('#fmess-search-box, .fmess-quick-reaction');
+      if (!button) return;
+      event.preventDefault();
+      button.click();
+    },
+    true,
+  );
   document.addEventListener(
     'click',
     (event) => {
