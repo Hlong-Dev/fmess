@@ -24,7 +24,8 @@ const MESSAGES_URL: &str = "https://www.facebook.com/messages/";
 /// The page script, joined from src/inject/ by build.rs.
 const INJECTED_SCRIPT: &str = include_str!(concat!(env!("OUT_DIR"), "/inject.js"));
 
-/// The app icon, shown on fMess's loading screen in place of Facebook's.
+/// The app icon, shown on fMess's loading screen in place of Facebook's, unless
+/// one was chosen in Settings.
 const SPLASH_LOGO: &[u8] = include_bytes!("../icons/128x128@2x.png");
 const SPLASH_DARK: tauri::window::Color = tauri::window::Color(28, 28, 29, 255);
 const SPLASH_LIGHT: tauri::window::Color = tauri::window::Color(255, 255, 255, 255);
@@ -42,7 +43,7 @@ pub fn messages_url() -> Url {
 pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> tauri::Result<()> {
     let launched_at_login = std::env::args().any(|arg| arg == AUTOSTART_ARG);
     let builder = WebviewWindowBuilder::new(app, MAIN_WINDOW, WebviewUrl::External(messages_url()))
-        .title("fMess")
+        .title(settings.app_name())
         .inner_size(1100.0, 760.0)
         .min_inner_size(420.0, 520.0)
         .visible(!(launched_at_login && settings.start_hidden))
@@ -255,14 +256,17 @@ fn initialization_script<R: Runtime>(app: &AppHandle<R>) -> String {
         Some(_) => "false",
         None => "null",
     };
-    let logo = base64::engine::general_purpose::STANDARD.encode(SPLASH_LOGO);
+    let custom = icon::custom(app);
+    let logo = custom.as_deref().unwrap_or(SPLASH_LOGO);
+    let logo_type = if logo.starts_with(&[0, 0, 1, 0]) { "image/x-icon" } else { "image/png" };
+    let logo = base64::engine::general_purpose::STANDARD.encode(logo);
     let debug = cfg!(debug_assertions);
     format!(
         "window.__fmessTitleBarInset = {TITLE_BAR_INSET};\n\
          window.__fmessDebug = {debug};\n\
          window.__fmessSettings = {};\n\
          window.__fmessDark = {dark};\n\
-         window.__fmessSplashLogo = 'data:image/png;base64,{logo}';\n\
+         window.__fmessSplashLogo = 'data:{logo_type};base64,{logo}';\n\
          {INJECTED_SCRIPT}",
         settings::page_settings(app, &settings)
     )
@@ -281,7 +285,7 @@ fn open_popup<R: Runtime>(
     let label = format!("popup-{}", NEXT_POPUP.fetch_add(1, Ordering::Relaxed));
     let size = features.size().map(|size| (size.width, size.height));
     let mut builder = WebviewWindowBuilder::new(app, &label, WebviewUrl::External(url))
-        .title("fMess")
+        .title(settings::current(app).app_name())
         .window_features(features);
     if let Some((x, y)) = centred_on_main_window(app, size) {
         builder = builder.position(x, y);
