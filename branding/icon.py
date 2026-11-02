@@ -17,9 +17,9 @@ replace icon.icns (iconutil -c icns on an .iconset of the per-size PNGs) and
 
     python3 branding/icon.py --themes OUT_DIR   # zalo-256.svg ... whatsapp-512.svg
 
-The icons the app shows while it runs with the Zalo or WhatsApp theme (see
-icon.rs): that app's own logo (brands/, both public domain on Wikimedia
-Commons) with fMess's icon as a badge in the corner, at 512 for the Dock and
+The icons the app shows while it runs with the Zalo, WhatsApp or Teams theme (see
+icon.rs): that app's own logo (brands/: Zalo's and WhatsApp's public domain on
+Wikimedia Commons, Teams' as Teams draws it) with fMess's icon as a badge in the corner, at 512 for the Dock and
 256 for the window and tray. Render them as above into src-tauri/icons/themes/."""
 import math, pathlib, re, sys
 
@@ -127,6 +127,10 @@ def brand(name):
     if name == "zalo":
         # Zalo's logo is its whole app icon, a rounded square (50 units).
         return f'<g filter="url(#logoshadow)"><g transform="translate(100,100) scale({824 / 50})">{inner(logo)}</g></g>'
+    if name == "teams":
+        # Teams' logo alone (20 units from 2,2), on a white square as its app shows it.
+        return f'''<g filter="url(#logoshadow)"><path d="{SQUIRCLE}" fill="#ffffff"/></g>
+<g transform="translate(176,176) scale(28)">{inner(logo)}</g>'''
     # WhatsApp's is the bubble alone: on a green square, as its app shows it,
     # without the logo's grey shadow (filter a) or the path drawn under the
     # same one again (its gradient isn't in the file).
@@ -150,7 +154,7 @@ def themed(size, name):
 if __name__ == "__main__":
     if sys.argv[1] == "--themes":
         out = pathlib.Path(sys.argv[2])
-        for name in ("zalo", "whatsapp"):
+        for name in ("zalo", "whatsapp", "teams"):
             for size in (256, 512):
                 (out / f"{name}-{size}.svg").write_text(themed(size, name))
         sys.exit()

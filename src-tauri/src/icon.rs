@@ -1,6 +1,6 @@
-//! With the Zalo or WhatsApp theme, fMess's icon becomes that app's logo with
-//! fMess's own as a badge (branding/icon.py --themes), unless turned off in
-//! Settings; otherwise it is fMess's.
+//! With the Zalo, WhatsApp or Teams theme, fMess's icon becomes that app's
+//! logo with fMess's own as a badge (branding/icon.py --themes), unless turned
+//! off in Settings; otherwise it is fMess's.
 //! Only while fMess runs, in the Dock (macOS), on its windows and taskbar
 //! button (Windows, Linux) and in the tray; Finder, Start and the app
 //! launchers keep the icon it was installed with.
@@ -20,6 +20,10 @@ fn icon(theme: Option<&str>) -> (&'static [u8], Option<&'static [u8]>) {
         Some("whatsapp") => (
             include_bytes!("../icons/themes/whatsapp-256.png"),
             Some(include_bytes!("../icons/themes/whatsapp-512.png")),
+        ),
+        Some("teams") => (
+            include_bytes!("../icons/themes/teams-256.png"),
+            Some(include_bytes!("../icons/themes/teams-512.png")),
         ),
         _ => (include_bytes!("../icons/128x128@2x.png"), None),
     }
