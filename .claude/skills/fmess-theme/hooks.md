@@ -146,8 +146,17 @@ html[data-fmess-chats]:not([data-fmess-media]) {
   `cursor: pointer` on `:root`. Draw the highlight in a fixed pseudo-element at those
   positions (default off-screen).
 - Clicks: `account` opens fMess's native account menu **under** the button (kept inside the
-  window), `settings` opens Settings; other names only light up. A press on one never starts
-  a window drag, even over the macOS drag strip.
+  window), `settings` opens Settings, `list` folds the chat list away and back (below);
+  other names only light up. A press on one never starts a window drag, even over the macOS
+  drag strip.
+- `list` toggles `data-fmess-list-collapsed` on `<html>`, remembered in localStorage for
+  the next start. fMess only keeps the flag; the theme does the folding, e.g.
+  `html[data-fmess-list-collapsed] [data-fmess-list]:not(:focus-within) { flex: 0 0 68px
+  !important; width: 68px !important; min-width: 68px !important; max-width: 68px
+  !important; overflow: hidden !important }` (more specific than fMess's pane-width rule,
+  so the user's width comes back when it unfolds), and hide `.fmess-pane-edge` meanwhile.
+  `:not(:focus-within)` lets the list open again while its search field or a row has the
+  focus. A rail drawn in the list's padding (pseudo-elements) stays.
 - fMess reads the list at most once a second.
 - Draw the pictures in fixed pseudo-elements with `pointer-events: none`. `body::before` is
   free; `html::before` is the strip/band.
@@ -174,6 +183,11 @@ so fMess knows the six of the reaction picker and learns others from the page. A
 opens Messenger's reaction picker for that message and picks the emoji there (which also
 takes it back if it is already yours); an emoji the picker lacks just closes it. Style the
 group inside the actions (`order`, sizes); hide it to opt out per place.
+
+After a quick-reaction click the message row (`[data-scope="messages_table"]`) carries
+`data-fmess-reacted` until the pointer leaves it: hide the actions box for such rows, as
+Messenger's own actions close once a reaction is picked. Hide it with `visibility`, not
+`display: none`: Messenger's picker is anchored to the react button while fMess picks.
 
 ## A message's hover actions
 
@@ -316,6 +330,12 @@ keep the text colour following its own background.
   `x:has(y)` plus `@container style(--flag: 1) { z { … } }` (Teams: read rows, reaction
   pills, the like button, the composer field). The flag inherits, so the query matches every
   descendant.
+- **One masked pseudo-element, one icon filled under the pointer:** `-webkit-mask-composite`
+  across many layers didn't give "outline icons ∪ (strip of filled icons ∩ hovered slot)"
+  in WebKit. What works: the strip as the last mask layer with `-webkit-mask-clip:
+  content-box`, and padding that makes the content box the hovered slot (`padding-top:
+  max(0px, calc(var(--fmess-hover-top, -300px) + 10px))`, the bottom likewise against a
+  fixed height); the other layers keep `border-box` (Teams' app bar).
 - **`zoom`** shrinks Messenger's nested picture boxes (avatar + ring + presence dot) in one
   rule. `getBoundingClientRect()` of zoomed children reports odd numbers; trust the snapshot.
 - **Hit areas.** Never hide a button's box to restyle it. Hide its `svg *` (or the svg's

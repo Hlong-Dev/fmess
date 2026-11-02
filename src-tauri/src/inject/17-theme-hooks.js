@@ -54,9 +54,22 @@
   // bottom (left = width + left - size). fMess lights the one under the
   // pointer (--fmess-window-hover-left/-top on :root) and runs "account" and
   // "settings" as above; the account menu opens under the button, kept
-  // inside the window (about 200px wide). A press there doesn't drag the
-  // window, though the title strip is under it.
+  // inside the window (about 200px wide). "list" folds the chat list away
+  // and back: data-fmess-list-collapsed on <html>, kept for next time, for
+  // the theme to fold it. A press there doesn't drag the window, though the
+  // title strip is under it.
   // The list is read again at most once a second, not on every move.
+  const LIST_COLLAPSED = 'data-fmess-list-collapsed';
+  const LIST_COLLAPSED_KEY = 'fmess.listCollapsed';
+  try {
+    if (localStorage.getItem(LIST_COLLAPSED_KEY) === '1') withRoot((root) => root.setAttribute(LIST_COLLAPSED, ''));
+  } catch {}
+  const toggleList = () => {
+    const collapsed = document.documentElement.toggleAttribute(LIST_COLLAPSED);
+    try {
+      localStorage.setItem(LIST_COLLAPSED_KEY, collapsed ? '1' : '0');
+    } catch {}
+  };
   let windowButtons = { at: 0, specs: [] };
   const windowButtonAt = (x, y) => {
     if (performance.now() - windowButtons.at > 1000) {
@@ -104,6 +117,7 @@
     (event) => {
       const button = onWindowButton(event);
       if (button?.name === 'settings') invoke('open_settings').catch(() => {});
+      else if (button?.name === 'list') toggleList();
       else if (button?.name === 'account') invoke('show_account_menu', { name: currentAccount()?.name ?? '', x: Math.max(0, Math.min(button.left, innerWidth - 200)), y: button.top + button.size + 4 }).catch(() => {});
     },
     true,
@@ -248,6 +262,10 @@
       event.preventDefault();
       event.stopPropagation();
       pickReaction(row, button.dataset.emoji).catch(() => {});
+      // The actions close once a reaction is picked, as Messenger's own do:
+      // the row carries data-fmess-reacted until the pointer leaves it.
+      row.setAttribute('data-fmess-reacted', '');
+      row.addEventListener('mouseleave', () => row.removeAttribute('data-fmess-reacted'), { once: true });
     },
     true,
   );
