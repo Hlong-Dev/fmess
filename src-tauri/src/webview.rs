@@ -1,6 +1,6 @@
 use std::{
-    sync::atomic::{AtomicU64, AtomicUsize, Ordering},
-    time::{SystemTime, UNIX_EPOCH},
+    sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering},
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 use tauri::{
@@ -32,6 +32,9 @@ const SPLASH_LIGHT: tauri::window::Color = tauri::window::Color(255, 255, 255, 2
 /// Height of the strip inject.js keeps free under the overlaid macOS title bar.
 const TITLE_BAR_INSET: u32 = if cfg!(target_os = "macos") { 28 } else { 0 };
 
+/// Whether a page has started to arrive in the main window.
+static PAGE_ARRIVED: AtomicBool = AtomicBool::new(false);
+
 pub fn messages_url() -> Url {
     Url::parse(MESSAGES_URL).expect("MESSAGES_URL is valid")
 }
@@ -45,6 +48,7 @@ pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -
         .visible(!(launched_at_login && settings.start_hidden))
         .on_page_load(|window, payload| match payload.event() {
             PageLoadEvent::Started => {
+                PAGE_ARRIVED.store(true, Ordering::Relaxed);
                 if should_leave_feed(payload.url()) {
                     let _ = window.navigate(messages_url());
                 }
@@ -70,7 +74,24 @@ pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -
     if settings.zoom != 1.0 {
         let _ = window.set_zoom(settings.zoom);
     }
+    retry_until_loaded(window);
     Ok(())
+}
+
+/// When the first load fails, as at login before the Mac is online, macOS's
+/// WebKit leaves the window white and doesn't try again (Windows and Linux
+/// show their own error page, which counts as arrived). So until a page
+/// arrives, fMess asks for it again, less and less often.
+fn retry_until_loaded<R: Runtime>(window: tauri::WebviewWindow<R>) {
+    std::thread::spawn(move || {
+        for seconds in [8, 15, 30].into_iter().chain(std::iter::repeat(60)) {
+            std::thread::sleep(Duration::from_secs(seconds));
+            if PAGE_ARRIVED.load(Ordering::Relaxed) {
+                return;
+            }
+            let _ = window.navigate(messages_url());
+        }
+    });
 }
 
 /// Called by the Messenger page (a theme's Settings button).
