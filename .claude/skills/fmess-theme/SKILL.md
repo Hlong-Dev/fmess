@@ -37,7 +37,7 @@ same things for each one; this skill holds them, so run it end to end without as
 | Theme workspace (private, not in git) | `~/projects/fmess-themes/<app>/`: `spec/`, `icons.json`, `<app>.src.css`, `build.py`, assets |
 | The template | `~/projects/fmess-themes/whatsapp/` (and `zalo.css`, built by hand) |
 | Built-in themes | `src-tauri/themes/<id>.css`, listed in `BUILT_IN` in `src-tauri/src/themes.rs` |
-| Hooks | `src-tauri/src/inject.js` (marks, `--fmess-buttons`, `#fmess-account`, `applyTheme`) |
+| Hooks | `src-tauri/src/inject/` (the page script in parts: 09-marks.js, 17-theme-hooks.js, 20-theme.js; `--fmess-buttons`, `#fmess-account`, `applyTheme`) |
 | Probe/snapshot | `src-tauri/src/probe.rs`; demo content: `~/projects/fmess-themes/demo-shot.js`, `shoot.sh` |
 | App icon per theme | `branding/icon.py --themes`, `branding/brands/<id>.svg`, `src-tauri/icons/themes/<id>-{256,512}.png`, `src-tauri/src/icon.rs` |
 | User settings | `~/Library/Application Support/io.github.toanbku.fmess/settings.json` (`theme`, `zoom`, `themeIcon`) |

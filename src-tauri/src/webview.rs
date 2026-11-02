@@ -20,7 +20,8 @@ pub const SETTINGS_WINDOW: &str = "settings";
 /// Meta shut messenger.com down in April 2026; chats on the web live here now.
 const MESSAGES_URL: &str = "https://www.facebook.com/messages/";
 
-const INJECTED_SCRIPT: &str = include_str!("inject.js");
+/// The page script, joined from src/inject/ by build.rs.
+const INJECTED_SCRIPT: &str = include_str!(concat!(env!("OUT_DIR"), "/inject.js"));
 
 /// The app icon, shown on fMess's loading screen in place of Facebook's.
 const SPLASH_LOGO: &[u8] = include_bytes!("../icons/128x128@2x.png");

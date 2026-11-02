@@ -1,10 +1,10 @@
 # What a theme can hook into
 
-Everything here was read from `src-tauri/src/inject.js`, `src-tauri/src/themes.rs`
+Everything here was read from the page script (`src-tauri/src/inject/`, joined into inject.js at build time), `src-tauri/src/themes.rs`
 and the shipped themes on 2026-11-02. Facebook and inject.js change: re-check with
 
 ```sh
-cd ~/projects/herald && grep -n "data-fmess\|--fmess\|fmess-account\|UNDER_EVERY_THEME" src-tauri/src/inject.js
+cd ~/projects/herald && grep -rn "data-fmess\|--fmess\|fmess-account\|UNDER_EVERY_THEME" src-tauri/src/inject/
 ```
 
 ## How the CSS reaches the page
