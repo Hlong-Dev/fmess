@@ -965,6 +965,8 @@
     ['M460.25 1079a', 'gif'],
     ['M210.5,405 C209.121', 'emoji'],
   ];
+  // Messenger's own like button, a thumbs-up (a chat's own one is an emoji picture).
+  const THUMBS_UP = 'M16,9.1c';
   const mark = (el, name) => {
     if (el && el.getAttribute(UI) !== name) el.setAttribute(UI, name);
   };
@@ -976,10 +978,11 @@
     for (const button of composer.querySelectorAll('[role="button"]')) {
       const path = button.querySelector('svg path')?.getAttribute('d') ?? '';
       const icon = COMPOSER_ICONS.find(([start]) => path.startsWith(start))?.[1];
-      // The last part holds the like button (an emoji), or send once there is text.
+      // The last part holds the like button, or send once there is text.
       const end = composer.lastElementChild?.tagName === 'SPAN' && composer.lastElementChild.contains(button);
+      const like = button.querySelector('img') || path.startsWith(THUMBS_UP);
       if (icon) mark(button, icon);
-      else if (end) mark(button, button.querySelector('img') ? 'like' : 'send');
+      else if (end) mark(button, like ? 'like' : 'send');
       else if (!field?.contains(button)) mark(button, 'more-actions');
     }
   };
