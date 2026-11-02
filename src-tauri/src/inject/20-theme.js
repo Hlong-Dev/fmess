@@ -34,6 +34,11 @@
   // white on white.
   const applyTheme = (next) => {
     theme = next?.css && !window.opener ? next : null;
+    // What the last theme asked for goes now, not at the next hover: its
+    // quick reactions, and its buttons are read again.
+    for (const group of document.querySelectorAll('.fmess-quick-reactions')) group.remove();
+    quickReactions.at = 0;
+    windowButtons.at = 0;
     withRoot((root) => {
       let style = document.getElementById(THEME);
       if (!theme) return style?.remove();
