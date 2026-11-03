@@ -19,6 +19,7 @@
   --z-quote: #c7e0ff;
   --z-text: #081b3a;
   --z-text-2: #5a6981;
+  --z-quote-text: #44546f;
   --z-blue: #005ae0;
   --z-rail: #005ae0;
   --z-accent: #0068ff;
@@ -41,6 +42,7 @@ html[data-fmess-dark] {
   --z-quote: rgba(0, 0, 0, 0.3);
   --z-text: #dfe2e7;
   --z-text-2: #9facbc;
+  --z-quote-text: #bfc6d0;
   --z-blue: #66a6ff;
   --z-rail: #121416;
   --z-accent: #66a6ff;
@@ -189,9 +191,9 @@ html[data-fmess-unread]::after {
   pointer-events: none;
 }
 
-/* Chat list: Zalo's search row, the field with Messenger's ⋯ and new message on its right,
-   then text tabs and square full-width rows. Messenger's header row ("Chats") is folded
-   to nothing and its buttons laid over the search row's right end. */
+/* Chat list: Zalo's search row, the field with Messenger's new message on its right, then
+   text tabs with Messenger's ⋯ at their right end, and square full-width rows. Messenger's
+   header row ("Chats") is folded to nothing and its buttons laid over those two rows. */
 [role="navigation"] div:has(h1):has(a[href="/messages/new/"]):not(:has(input[type="search"])) {
   display: block !important;
   height: 0 !important;
@@ -206,7 +208,9 @@ html[data-fmess-unread]::after {
   right: 16px !important;
   height: 36px !important;
 }
-[data-fmess-list] div:has(a[href="/messages/new/"]):not(:has(h1)) {
+/* The boxes around new message, found from it by children only: a :has() searching
+   every div of the list would be checked again whenever the list changes. */
+[data-fmess-list] div:has(> span > a[href="/messages/new/"], > div > span > a[href="/messages/new/"], > div > div > span > a[href="/messages/new/"]) {
   height: 36px !important;
   max-height: none !important;
   margin: 0 !important;
@@ -224,7 +228,14 @@ html[data-fmess-unread]::after {
   display: none !important;
 }
 [data-fmess-list] div:has(> div > div > label > input[type="search"]) {
-  padding-right: 86px !important;
+  padding-right: 52px !important;
+}
+/* ⋯ at the filters' right end, where Zalo has its ⋯, under new message: the tabs start
+   52px below the search field's top, and the 32px button sits on their 36px middle. */
+[data-fmess-list] div:has(> span > [data-fmess-ui="list-menu"]) {
+  position: absolute !important;
+  top: 52px !important;
+  right: 0 !important;
 }
 [data-fmess-list] :is([data-fmess-ui="list-menu"], a[href="/messages/new/"]) {
   width: 32px !important;
@@ -254,8 +265,20 @@ html[data-fmess-unread]::after {
 /* The filters' row: a line under the whole row, as in Zalo. */
 [data-fmess-list] div:has(> div > div > [role="tablist"]) {
   margin: 0 !important;
-  padding: 4px 16px 0 !important;
+  padding: 4px 52px 0 16px !important;
   border-bottom: 1px solid var(--z-line) !important;
+}
+/* Messenger's "More" (the filters that don't fit) at the right end, next to ⋯, as a
+   chevron like Zalo's "Phân loại ▾". */
+[data-fmess-list] [role="tablist"] > div:has(> div > div > div > [role="button"][aria-haspopup="dialog"]) {
+  left: auto !important;
+  right: 0 !important;
+  transform: none !important;
+}
+[data-fmess-list] [role="tablist"] [role="button"][aria-haspopup="dialog"] i {
+  background: var(--z-text-2) !important;
+  filter: none !important;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
 }
 [role="navigation"] input[type="search"] {
   border-radius: 6px !important;
@@ -491,6 +514,9 @@ img[alt="👍"] { content: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIG
 [role="navigation"] input[type="search"] {
   font-size: 13px !important;
   height: 32px !important;
+  /* In the middle of the field, with the magnifier: the field stays 36px tall. */
+  align-self: center !important;
+  margin-block: auto !important;
 }
 [role="navigation"] label:has(input[type="search"]) {
   height: 32px !important;
@@ -530,6 +556,121 @@ html[data-fmess-media]::after {
 }
 :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > div:has([role="textbox"]) { order: 3; }
 :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > span { order: 4; }
+
+/* Replying, as Zalo shows it: between the tools and the message box, a grey box with a 2px
+   blue bar inside, a quote mark before "Replying to <name>" (Messenger's words, in the
+   user's language), the message on one line, and a 20px close button. Messenger puts this
+   bar (composer-bar) before the composer; while it's there the composer's own box goes
+   (display: contents), so the bar and the composer's rows wrap in one box and the bar
+   takes the place between them (order 2). */
+div:has(> [data-fmess-ui="composer-bar"] + [data-fmess-ui="composer"]) {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  border-top: 1px solid var(--z-line) !important;
+  background: var(--z-layer) !important;
+}
+[data-fmess-ui="composer-bar"] + [data-fmess-ui="composer"] {
+  display: contents !important;
+}
+/* The like/send button's span has no box of its own either: its button keeps the end. */
+[data-fmess-ui="composer-bar"] + [data-fmess-ui="composer"] > span > * {
+  order: 4;
+}
+html[data-fmess-chats] [data-fmess-ui="composer-bar"] {
+  order: 2;
+  flex: 0 0 calc(100% - 24px) !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 52px !important;
+  margin: 10px 12px 0 !important;
+  padding: 8px 8px 8px 12px !important;
+  border-radius: 4px !important;
+  background: var(--z-subtle) !important;
+}
+html[data-fmess-chats] [data-fmess-ui="composer-bar"]::before {
+  content: "";
+  flex: none;
+  align-self: stretch;
+  width: 2px;
+  margin-right: 10px;
+  background: var(--z-accent);
+}
+html[data-fmess-chats] [data-fmess-ui="composer-bar"] > div {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  transform: none !important;
+  background: transparent !important;
+}
+html[data-fmess-chats] [data-fmess-ui="composer-bar"] > div > div:first-child {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  margin-right: 8px !important;
+}
+[data-fmess-ui="composer-bar"] div:has(> div > h3),
+[data-fmess-ui="composer-bar"] div:has(> div > h3) > div {
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+[data-fmess-ui="composer-bar"] h3,
+[data-fmess-ui="composer-bar"] h3 span {
+  font-size: 13px !important;
+  line-height: 18px !important;
+  font-weight: 400 !important;
+  color: var(--z-text) !important;
+}
+[data-fmess-ui="composer-bar"] h3 {
+  display: flex !important;
+  align-items: center !important;
+}
+[data-fmess-ui="composer-bar"] h3 > span > span {
+  font-weight: 500 !important;
+}
+/* Messenger trims each line's leading with negative-margin pseudo-elements, which lays the
+   two 18px lines over each other here. */
+[data-fmess-ui="composer-bar"] div:has(> div > h3) *::before,
+[data-fmess-ui="composer-bar"] div:has(> div > h3) *::after {
+  display: none !important;
+}
+[data-fmess-ui="composer-bar"] div:has(> div > h3) > div > h3::before {
+  content: "";
+  display: inline-block !important;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin-right: 4px;
+  background: var(--z-text-2);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.5 4.5h4.2v4.1c0 2.3-1.3 3.9-3.6 4.4l-.5-1.2c1.2-.4 1.9-1.2 2-2.3H2.5zm6.8 0h4.2v4.1c0 2.3-1.3 3.9-3.6 4.4l-.5-1.2c1.2-.4 1.9-1.2 2-2.3H9.3z'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+}
+[data-fmess-ui="composer-bar"] div:has(> div > h3) > div + div,
+[data-fmess-ui="composer-bar"] div:has(> div > h3) > div + div * {
+  font-size: 13px !important;
+  line-height: 18px !important;
+  color: var(--z-quote-text) !important;
+}
+[data-fmess-ui="composer-bar"] div:has(> div > h3) > div + div > span {
+  display: block !important;
+}
+[data-fmess-ui="composer-bar"] div:has(> div > h3) > div + div > span > div {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+html[data-fmess-chats] [data-fmess-ui="composer-bar"] > div > [role="button"] {
+  align-self: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  --primary-icon: var(--z-text-2);
+  --secondary-icon: var(--z-text-2);
+  color: var(--z-text-2) !important;
+}
+html[data-fmess-chats] [data-fmess-ui="composer-bar"] > div > [role="button"] svg {
+  width: 20px !important;
+  height: 20px !important;
+}
 
 /* The same icons for dark mode, in Zalo's light grey. */
 html[data-fmess-dark] [role="navigation"]::before {
