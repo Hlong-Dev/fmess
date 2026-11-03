@@ -189,9 +189,73 @@ html[data-fmess-unread]::after {
   pointer-events: none;
 }
 
-/* Chat list: no "Chats" header (search on top), text tabs, square full-width rows. */
+/* Chat list: Zalo's search row, the field with Messenger's ⋯ and new message on its right,
+   then text tabs and square full-width rows. Messenger's header row ("Chats") is folded
+   to nothing and its buttons laid over the search row's right end. */
 [role="navigation"] div:has(h1):has(a[href="/messages/new/"]):not(:has(input[type="search"])) {
+  display: block !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+[data-fmess-list] div:has(> div > div > #fmess-account) {
+  position: absolute !important;
+  z-index: 1 !important;
+  top: 12px !important;
+  right: 16px !important;
+  height: 36px !important;
+}
+[data-fmess-list] div:has(a[href="/messages/new/"]):not(:has(h1)) {
+  height: 36px !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 2px !important;
+  align-items: center !important;
+}
+[data-fmess-list] span:has(> :is([data-fmess-ui="list-menu"], a[href="/messages/new/"])) {
+  display: flex !important;
+  align-items: center !important;
+  height: 36px !important;
+}
+[data-fmess-list] #fmess-account,
+[data-fmess-list] #fmess-account + div {
   display: none !important;
+}
+[data-fmess-list] div:has(> div > div > label > input[type="search"]) {
+  padding-right: 86px !important;
+}
+[data-fmess-list] :is([data-fmess-ui="list-menu"], a[href="/messages/new/"]) {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  --secondary-button-background: transparent !important;
+}
+[data-fmess-list] :is([data-fmess-ui="list-menu"], a[href="/messages/new/"]):hover {
+  background: var(--z-hover) !important;
+}
+[data-fmess-list] :is([data-fmess-ui="list-menu"], a[href="/messages/new/"]) svg {
+  width: 20px !important;
+  height: 20px !important;
+  background: var(--z-text);
+}
+[data-fmess-list] :is([data-fmess-ui="list-menu"], a[href="/messages/new/"]) svg * {
+  visibility: hidden;
+}
+[data-fmess-list] [data-fmess-ui="list-menu"] svg {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='4' cy='10' r='1.5'/%3E%3Ccircle cx='10' cy='10' r='1.5'/%3E%3Ccircle cx='16' cy='10' r='1.5'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
+}
+/* Zalo's "Tạo nhóm" (two people and a plus), for a new chat with one or more people. */
+[data-fmess-list] a[href="/messages/new/"] svg {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round'%3E%3Ccircle cx='7.5' cy='6.5' r='3'/%3E%3Cpath d='M2 17c0-3 2.5-5 5.5-5s5.5 2 5.5 5'/%3E%3Cpath d='M12.5 3.8a3 3 0 0 1 0 5.4M14.5 12.3c1.3.6 2.3 1.8 2.6 3.2M16.5 2.5v4M14.5 4.5h4'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
+}
+/* The filters' row: a line under the whole row, as in Zalo. */
+[data-fmess-list] div:has(> div > div > [role="tablist"]) {
+  margin: 0 !important;
+  padding: 4px 16px 0 !important;
+  border-bottom: 1px solid var(--z-line) !important;
 }
 [role="navigation"] input[type="search"] {
   border-radius: 6px !important;
@@ -213,9 +277,6 @@ html[data-fmess-unread]::after {
   box-shadow: inset 0 -2px var(--z-blue) !important;
   --primary-deemphasized-button-text: var(--z-blue) !important;
   --primary-text: var(--z-blue) !important;
-}
-[role="navigation"] [role="tablist"] {
-  border-bottom: 1px solid var(--z-line) !important;
 }
 [role="navigation"] [role="row"] a[role="link"] {
   border-radius: 6px !important;
