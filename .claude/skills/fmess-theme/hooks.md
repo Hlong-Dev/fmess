@@ -36,7 +36,7 @@ cd ~/projects/herald && grep -rn "data-fmess\|--fmess\|fmess-account\|UNDER_EVER
 
 | Hook | Where / when | Use it for |
 |---|---|---|
-| `html[data-fmess-dark]` | Messenger is dark: its own setting `ENABLED`, or `USE_SYSTEM` while the system is dark | Every dark colour. Do **not** key on `.__fb-dark-mode` on the root: with `USE_SYSTEM`, Facebook marks only parts of the page. |
+| `html[data-fmess-dark]` | Messenger is dark. Facebook's own mark on `<html>` (`__fb-dark-mode` / `__fb-light-mode`) decides when it is there, and changes to it are followed (0.1.24: before, a setting changed on the phone left a light theme over a dark page for up to 30 s); otherwise the setting (`ENABLED`, or `USE_SYSTEM` while the system is dark) | Every dark colour. Key on this, not on `.__fb-dark-mode`: with `USE_SYSTEM`, Facebook marks only parts of the page. |
 | `html[data-fmess-chats]` | path is `/messages…` or `/messenger_media…` | Scoping page decorations to the chats. The shipped themes don't scope, but new ones should. |
 | `html[data-fmess-media]` | photo/video viewer open (`/messenger_media`, or the viewer on screen: in chats it is a layer at the same address) | Hide `html::before/::after` and other overlays. On macOS the viewer has its own title bar. |
 | `html[data-fmess-unread="N"]` | number of unread chats in the list, checked every 2 s; removed at 0 | `content: attr(data-fmess-unread)` badge on the rail |
@@ -47,6 +47,7 @@ cd ~/projects/herald && grep -rn "data-fmess\|--fmess\|fmess-account\|UNDER_EVER
 | `[data-tauri-drag-region]` | macOS only: fMess's transparent strip, `--fmess-title-bar` tall, z-index max, that drags the window | A taller band can make it taller (`height: 48px !important`) and cut a hole where a real control sits (`clip-path: polygon(evenodd, outer…, hole…)`), so the control gets the clicks. Window buttons (below) need no hole |
 | `html[data-fmess-logged-out]` | login pages | (rarely needed) |
 | `html[data-fmess-main]`, `[data-fmess-overlay-scrollbars]` | fMess's own scroll bars: thin native overlay ones on macOS, hidden plus a floating `#fmess-scroll-indicator` elsewhere | Don't restyle `::-webkit-scrollbar` against it. `--chat-scrollbar-thumb-color` is all a theme needs. |
+| `html[data-fmess-hide-avatars]`, `[data-fmess-avatar="initial"/"none"]` | Hide profile pictures (Settings › Appearance) is on: people's pictures in the list, header, messages and details are swapped with `content: url(<initials svg>)` (`initial`), or left alone when not a person's (`none`) | Never use `content:` on people's pictures yourself; `zoom` and sizes are fine. Test the theme with it on |
 | `[data-fmess-list]`, `[data-fmess-chat-row]`, `.fmess-pane-edge` | the chat list nav, the row holding chat + details, the 9px resize handles (z-index 5, line colour `--primary-button-background`) | Don't cover or hide the handles |
 
 ## `data-fmess-ui` marks
@@ -102,6 +103,7 @@ emoji picker.
 | Composer placeholder ("Aa") | `[role="textbox"] + div[aria-hidden="true"] > div`, there only while the box is empty (the 1×1 "Aa" before the editor is for screen readers) |
 | A chat row's time | `div[style*="height: 8px"] + div > span:last-child:has(abbr)` (line 2: preview, " · ", time) |
 | The list's title row, pills row | `[data-fmess-list] div:has(> div > div > #fmess-account)`; `div:has(> div > div > [role="tablist"])` (the tablist and its two wrappers are 36px by class) |
+| Typing dots (someone typing) | in `[role="log"]`, not in a message: `[aria-hidden="true"]:not([data-message-id] *):has(> div[role="presentation"] + div [role="presentation"])`; its first child is the picture column (Messenger pads it 6px where messages have 14px, so it sits 8px to the left: Teams sets `padding-left: 14px`), the second holds the dots' bubble |
 | Page language | `html[lang]` (`en` for an English Facebook): the place to write the target's own words for English only | To style one, find a structural selector with a probe (roles, `dir`,
 `data-*`, inline `style*=` pieces), never text, and note it in the mapping table. If the
 only way is new JS, that is an inject.js change for the user to decide on, not part of the
@@ -340,5 +342,8 @@ keep the text colour following its own background.
   fixed height); the other layers keep `border-box` (Teams' app bar).
 - **`zoom`** shrinks Messenger's nested picture boxes (avatar + ring + presence dot) in one
   rule. `getBoundingClientRect()` of zoomed children reports odd numbers; trust the snapshot.
+- **Row hover in two tones.** Messenger's own hover layer (`--hover-overlay`) covers only
+  part of a chat row. A theme that paints its own row hover sets
+  `--hover-overlay: transparent !important` on `[data-fmess-list] [role="row"] a[role="link"]`.
 - **Hit areas.** Never hide a button's box to restyle it. Hide its `svg *` (or the svg's
   `visibility`) and paint on the button or the svg, so the click target and the tooltip stay.

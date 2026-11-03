@@ -21,12 +21,15 @@ Other agents may need the debug app too. Convention: while
 `<scratchpad>/debug-app-busy` exists, don't launch the debug app, kill fMess or edit
 settings.json; poll until it's gone. Put that check at the top of your run script.
 
-Scripts that did the Teams loop (kill → settings → launch with a probe → wait → print,
-restore, a probe builder joining the theme CSS + demo + dark + measuring bodies, and a
-Swift image helper for crops and side-by-sides, since there is no PIL) are in the Teams
-session's scratchpad (`/private/tmp/claude-502/-Users-toanho/07553cde-…/scratchpad/teams-build/`:
-`run.sh`, `restore.sh`, `mk.py`, `img.swift`). Copy them if they are still there; they
-hard-code that folder in `B=`.
+Reusable probes and a launcher are in `~/projects/fmess-themes/tools/` (README there):
+`run.sh <probe.js> [wait-s] [--env K=V …]`, `bench.js` (frames while scrolling and opening
+chats, the same script runs in Chrome), `typing.js`, `viewer.js`, `typing-dots.js`. The
+Teams loop's own scripts (`mk.py`, `img.swift`…) lived in a `/tmp` scratchpad and are gone:
+`/tmp` is wiped when the Mac restarts, so keep anything worth reusing in the workspace.
+There is no PIL: crop with `sips -c <h> <w> --cropOffset <y> <x>`, shrink with `sips -Z`.
+
+zsh doesn't split an unquoted variable: `open $E …` with `E="--env A=1"` fails. Write each
+`--env K=V` as its own argument.
 
 ## Launch with a probe
 
@@ -34,8 +37,12 @@ hard-code that folder in `B=`.
 
 - `FMESS_PROBE=<file.js>`: the file is the body of an async function (`await` is fine,
   it must `return`). It runs in the main window after `FMESS_PROBE_DELAY` s (default 15)
-  and prints `[probe] <json>` to stderr. It gives up after 60 s ("no result"), so keep
-  probes short. To chain two, wrap each in `await (async () => { … })()`.
+  and prints `[probe] <json>` to stderr. It gives up after `FMESS_PROBE_WAIT` s (default
+  60, "no result"). A probe that waits for something only a person does (someone typing,
+  the user pasting) sets it higher and keeps its own wait loop time-based. To chain two,
+  wrap each in `await (async () => { … })()`.
+- `FMESS_NO_INJECT=1` leaves fMess's page script out (WebKit and Facebook alone), to tell
+  whether a cost is fMess's or WebKit's.
 - `FMESS_WINDOW_SIZE=880x600` sizes the window first (logical px). The site shots and the
   Chrome reference use 880×600.
 - `FMESS_SNAPSHOT=<file.png>` (macOS) saves the page as the probe left it, through WebKit
@@ -114,8 +121,10 @@ return {
 ## Dark mode without touching Messenger's setting
 
 Put this before the measuring body (it's the `DEMO_DARK` block of the newer demo-shot.js).
-Measure or snapshot right away: fMess re-syncs `data-fmess-dark` when it next reads
-Messenger's preferences.
+Since 0.1.24 `data-fmess-dark` follows Facebook's own mark on `<html>`
+(`__fb-dark-mode`/`__fb-light-mode`) as it changes, so the class change below is what flips
+it; it lasts until Facebook rewrites the class or the page reloads. Measure or snapshot
+right away.
 
 ```js
 for (const el of document.querySelectorAll('.__fb-light-mode')) el.classList.replace('__fb-light-mode', '__fb-dark-mode');
@@ -159,8 +168,28 @@ cancelButton.click();                                      // then undo
 return 'done';
 ```
 
-Open the photo viewer only through `a[href*="messenger_media"]`: other links in a chat
-(shared posts, link cards) open in the system browser (links.rs).
+**Photo viewer.** A chat's photo opens in a layer over the page at the same address, with
+no dialog role (2026-11-02); `/messenger_media` is no longer the way in. Click the photo's
+`[role="button"]` wrapper in a message (`img` 100px or wider inside `[data-message-id]`),
+not other links: shared posts and link cards open in the system browser (links.rs). fMess
+finds the layer by the download link in its top bar (`a[download]` outside `[role="main"]`).
+Escape closes it (Facebook's own), or the last button of that bar. `tools/viewer.js` does
+the whole check: flag set, the theme's title and badge hidden, double-click zoom, Escape
+unzooms then closes.
+
+## States only people cause: the typing dots
+
+Nobody can make the other side type. Run `tools/typing-dots.js` with
+`FMESS_PROBE_WAIT=1500` and ask the user to keep a busy chat open in the debug app; it
+returns when the dots show. Don't type to trigger them: the dots are the other person's.
+
+## Typing in a test
+
+Typing in a message box shows "typing…" to the people in that chat. Turn on `blockTyping`
+in settings.json for the test (fMess then sends "not typing"), use a read chat, never press
+Enter, insert with `document.execCommand('insertText', false, ch)`, and empty the box after
+with `execCommand('selectAll')` + `execCommand('delete')` (works in WebKit; in Chrome it may
+not: use real keys there). Return `boxEmptyAfter` and check it.
 
 ## Hover, tooltips, the reply bar
 
@@ -195,6 +224,9 @@ Facebook. A reply bar left open stays in that chat for the user.
   ```
   It should be about the same as with no theme. A big drop means a full-chat mask or
   background, or a broad `:has()`.
+- `tools/bench.js` measures more (rest, opening six read chats, scrolling the list and the
+  messages): run it with the theme, with `theme: null`, and with `FMESS_NO_INJECT=1` for
+  WebKit alone. Same window size each time.
 
 ## Side by side
 
@@ -214,7 +246,7 @@ Facebook. A reply bar left open stays in that chat for the user.
   Then compare the probe's numbers with the spec tables. Numbers decide; the picture only
   shows where to look.
 - Also look at: a tooltip, the ⋯ list menu, the reaction picker, the photo viewer
-  (`/messenger_media`, decorations hidden), the call buttons (look only: calls have no
+  (a layer; every decoration and fMess-drawn control hidden), the call buttons (look only: calls have no
   theme), the reply bar, a chat with a link preview, a group chat, the details pane open,
   the Windows/Linux case (`--fmess-title-bar: 0`: nothing drawn over the top of the page).
 - Optional quick look in Chrome: apply the CSS to facebook.com/messages in a tab (memory

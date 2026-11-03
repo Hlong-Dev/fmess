@@ -16,9 +16,9 @@ fMess wraps facebook.com/messages. A theme is **CSS only**: `inject.js` puts it 
 page, and the user picks it in Settings. Messenger stays underneath. The goal: someone who
 uses `<app>` every day sees `<app>` at a glance, in light and dark, at 880×600.
 
-Zalo and WhatsApp are shipped. Teams is built (`~/projects/fmess-themes/teams/`, NOTES.md
-there) and not released yet. The user has explained the
-same things for each one; this skill holds them, so run it end to end without asking again.
+Zalo, WhatsApp and Teams are shipped (Teams since 0.1.25; its workspace and NOTES.md are in
+`~/projects/fmess-themes/teams/`). The user has explained the same things for each one;
+this skill holds them, so run it end to end without asking again.
 
 **Read before writing selectors:**
 - [hooks.md](hooks.md): every hook fMess gives themes, Messenger's variables, DOM
@@ -39,6 +39,7 @@ same things for each one; this skill holds them, so run it end to end without as
 | Built-in themes | `src-tauri/themes/<id>.css`, listed in `BUILT_IN` in `src-tauri/src/themes.rs` |
 | Hooks | `src-tauri/src/inject/` (the page script in parts: 09-marks.js, 17-theme-hooks.js, 20-theme.js; `--fmess-buttons`, `#fmess-account`, `applyTheme`) |
 | Probe/snapshot | `src-tauri/src/probe.rs`; demo content: `~/projects/fmess-themes/demo-shot.js`, `shoot.sh` |
+| Measuring probes | `~/projects/fmess-themes/tools/` (`run.sh`, `bench.js`, `typing.js`, `viewer.js`, `typing-dots.js`, README): kept there because `/tmp` scratchpads are wiped when the Mac restarts |
 | App icon per theme | `branding/icon.py --themes`, `branding/brands/<id>.svg`, `src-tauri/icons/themes/<id>-{256,512}.png`, `src-tauri/src/icon.rs` |
 | User settings | `~/Library/Application Support/io.github.toanbku.fmess/settings.json` (`theme`, `zoom`, `themeIcon`) |
 | Gotcha notes | `~/.claude/projects/-Users-toanho/memory/fmess-*.md`, `herald-messenger-desktop.md` |
@@ -113,7 +114,7 @@ can't**. Start from this (details in hooks.md):
 | New chat, list ⋯ | `a[href="/messages/new/"]`, `[data-fmess-ui="list-menu"]` | svg mask |
 | Search | `label:has(input[type="search"])`, `::placeholder` | written placeholder = one language |
 | Filters | `[role="tablist"]`, `[role="tab"][aria-selected]` | can't add tabs Messenger lacks |
-| Chat rows | `[role="row"] a[role="link"]`, `:hover`, `[aria-current="page"]` | |
+| Chat rows | `[role="row"] a[role="link"]`, `:hover`, `[aria-current="page"]` | painting your own hover: set `--hover-overlay: transparent` on the row link, or Messenger's layer covers part of the row in another shade (Teams' dark rows showed two tones) |
 | Chat background / pattern | `[data-mw-file-dropzone]` + its `::before` layer | per-chat picture host transparent |
 | Chat header + buttons | `chat-header`, `audio-call`, `video-call`, `info` (`[aria-expanded="true"]`) | extra target buttons only as decoration |
 | Bubbles | `--chat-*` vars, `[data-message-id] [role="presentation"]`, `[dir="auto"]` | no group-position mark: no tails, no first/last radii |
@@ -121,11 +122,11 @@ can't**. Start from this (details in hooks.md):
 | Reactions | `--reaction-pill-*`, `reactions`, `more-emojis`, `img[alt="…"] { content: url() }` | the img swap is global |
 | Composer, send files, emoji, like/send | `composer`, `attach`, `more-actions`, `emoji`, `sticker`, `gif`, `voice-clip`, `like`, `send`; flex `order`, `display: contents` | rich-text toolbars, formatting: can't. The default 👍 is marked `send` (hooks.md): guard it |
 | Reply / link preview bar | `composer-bar`, `--chat-replied-message-background-color` | UNDER_EVERY_THEME makes it grow |
-| Typing indicator | **no mark**, can't be triggered without typing | colours via Messenger vars |
+| Typing indicator | no mark; a structure (hooks.md) | only someone else typing shows it: catch it with `tools/typing-dots.js`. Messenger draws its picture 8px left of the messages' pictures; Teams aligns it |
 | Read receipt, reaction pills, group sender names | structural selectors (hooks.md, "No mark, but a structure") | the img swap / `@container style()` flag |
 | Details pane | `details` + `::before` title; inner rules with `@container style(--flag: 1)` | |
 | Tooltips, menus, popovers | `[role="tooltip"]`, `[role="menu"]`, `--popover-background` + the two island blocks | |
-| Photo viewer | `html[data-fmess-media]` | hide decorations |
+| Photo viewer | `html[data-fmess-media]` | in chats it is a layer at the same address (not `/messenger_media`, no dialog). Hide **everything** the theme draws or asks for: `html`/`body` pseudo-elements, the unread badge, `#fmess-search-box`, `--fmess-window-buttons` (scope them `:not([data-fmess-media])`). Issue #1 was a theme's title and badge over a photo |
 | Calls | none: call windows get no theme | |
 | Scroll bars | `--chat-scrollbar-thumb-color` | fMess owns the scroll bars |
 | Type | font stack on `html :is(div, span, …)`, `@font-face` from a data URL | only openly licensed fonts bundled |
@@ -171,8 +172,13 @@ button's box: hide its `svg *` and paint in its place (template.md).
    call buttons (look only), the reply bar (open, measure, cancel in the same probe), a group
    chat, a link preview, the details pane, and the `--fmess-title-bar: 0` case.
 6. Performance: no `:has()` left of a combinator and none nested, full-chat pictures on a
-   `will-change` layer, scroll fps the same as with no theme.
-7. Restore: kill the debug app, copy the backup over `settings.json`,
+   `will-change` layer, and `tools/bench.js` (scroll, opening chats) the same with and
+   without the theme. Since 0.1.28 fMess draws up to 120 fps on a 120 Hz Mac: compare
+   with a no-theme run, not with 60.
+7. Hide profile pictures (Settings › Appearance) on: fMess swaps people's pictures with
+   `content: url(<initials svg>)`, so the theme must not use `content:` on them; resizing
+   them with `zoom` or sizes is fine. Look at the list, header, messages and typing dots.
+8. Restore: kill the debug app, copy the backup over `settings.json`,
    `open -a /Applications/fMess.app`, close your Chrome tabs.
 
 ## 6. Ship (in ~/projects/herald)
@@ -193,7 +199,12 @@ button's box: hide its `svg *` and paint in its place (template.md).
      --screenshot=…`, with its own `--user-data-dir`), into
      `src-tauri/icons/themes/<app>-256.png` and `-512.png`.
    - Add a match arm to `icon()` in `src-tauri/src/icon.rs`, and update its doc comment.
-   - Update the hint in `ui/settings.html` ("With Zalo or WhatsApp, the icon shows…").
+   - Update the hint in `ui/settings.html` ("With Zalo, WhatsApp or Teams, the icon
+     shows…") in English and in the Vietnamese dictionary below it (`themeIconHint`). The
+     Settings window speaks both since 0.1.24: write Vietnamese that reads naturally (the
+     user's bar: like genk.vn), not word-for-word.
+   - A picture chosen in Settings › App icon (0.1.28) wins over the theme's icon: test with
+     none chosen (`customIcon` false).
 4. Debug build, choose the theme in Settings, check the Dock icon and the "App icon follows
    the theme" switch, then restore.
 5. Docs and site: `grep -rn -i whatsapp README.md README.vi.md site/ ui/` and add the new
@@ -212,7 +223,9 @@ button's box: hide its `svg *` and paint in its place (template.md).
    the `check` job checks latest.json. Test locally first: the Mac dmg (`codesign --verify`,
    run 20 s), and the `.deb` in the OrbStack machine `fmess-linux`. Then publish via
    `gh api -X PATCH …/releases/<id> -F draft=false -f make_latest=true`. A bad pushed tag
-   can't be deleted: bump the version.
+   can't be deleted: bump the version. The update dialog shows latest.json's `notes`:
+   English, a line `---`, then Vietnamese. If the Apple-silicon build ends "cancelled"
+   (no hosted runner), `gh run rerun <id> --failed` until it gets one.
 
 ## 7. Licensing
 
@@ -234,6 +247,9 @@ button's box: hide its `svg *` and paint in its place (template.md).
 - [ ] Light and dark match the references region by region at 880×600
 - [ ] No themed style depends on an English label; the rewrite probe shows no change
 - [ ] Tooltips are readable in both modes; viewer, calls, reply bar and details are fine
+- [ ] Nothing the theme draws shows over a photo (`tools/viewer.js`); typing dots line up
+      with the messages; Hide profile pictures on still looks right
+- [ ] `tools/bench.js` with the theme matches a no-theme run
 - [ ] Under 2 MB, `cargo test themes` passes, no broad `:has()`
 - [ ] Icon, Settings hint, site, llms.txt updated (if shipping)
 - [ ] The user's settings (and `.window-state.json`) are restored, the installed app is
